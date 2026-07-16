@@ -1,0 +1,159 @@
+/* Glassmorphism base utilities */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass-panel {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Glass panel light theme variant */
+.light-glass-panel {
+    background: rgba(255, 253, 248, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Obsidian Gold theme gradients */
+.gold-gradient-bg {
+    background: linear-gradient(135deg, #111111 0%, #1e1e1e 100%);
+}
+
+.gold-border {
+    border-color: rgba(200, 139, 55, 0.65);
+}
+
+.gold-text {
+    color: #C88B37;
+}
+
+.gold-bg {
+    background-color: #C88B37;
+}
+
+.gold-glow {
+    box-shadow: 0 0 15px rgba(200, 139, 55, 0.25);
+}
+
+.gold-glow-strong {
+    box-shadow: 0 0 25px rgba(200, 139, 55, 0.45);
+}
+
+/* Liquid elements and animations */
+@keyframes liquid-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.2;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.35;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.2;
+    }
+}
+
+.liquid-glowing-ring {
+    position: relative;
+}
+
+.liquid-glowing-ring::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #C88B37 0%, #F3E5AB 100%);
+    z-index: -1;
+    opacity: 0.6;
+    filter: blur(2px);
+}
+
+.liquid-avatar-container {
+    box-shadow: 0 0 8px rgba(200, 139, 55, 0.15);
+    border: 1.5px solid rgba(200, 139, 55, 0.65);
+}
+
+/* Customized scrollbar for messages */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(200, 139, 55, 0.15);
+    border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(200, 139, 55, 0.3);
+}
+
+/* Chat bubble styling */
+.bubble-sent {
+    background: linear-gradient(135deg, #d49c4f 0%, #a6732e 100%);
+    color: #ffffff;
+    border-radius: 18px 18px 4px 18px;
+    box-shadow: 0 4px 16px rgba(200, 139, 55, 0.22);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bubble-sent:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(200, 139, 55, 0.3);
+}
+
+.bubble-received {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+    border-radius: 18px 18px 18px 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.bubble-received:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.light .bubble-received {
+    background: #f4f4f7;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    color: #1a1a1a;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.light .bubble-received:hover {
+    background: #eaeaea;
+}
+
+/* Dynamic chat list entry animation */
+@keyframes slide-in-chat {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-chat-entry {
+    animation: slide-in-chat 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
