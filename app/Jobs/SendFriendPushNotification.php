@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 
 class SendFriendPushNotification implements ShouldQueue
 {
@@ -41,8 +42,14 @@ class SendFriendPushNotification implements ShouldQueue
             return;
         }
 
+        $title = $this->type === 'friend_request' ? 'New Friend Request' : 'Friend Request Accepted';
+        $body = $this->type === 'friend_request' 
+            ? "{$this->senderName} sent you a friend request!" 
+            : "{$this->senderName} accepted your friend request!";
+
         foreach ($tokens as $deviceId => $token) {
             $message = CloudMessage::withTarget('token', $token)
+                ->withNotification(Notification::create($title, $body))
                 ->withData([
                     'type'        => $this->type,
                     'sender_name' => $this->senderName,

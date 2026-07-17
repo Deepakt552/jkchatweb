@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 
 class SendMessagePushNotification implements ShouldQueue
 {
@@ -69,8 +70,9 @@ class SendMessagePushNotification implements ShouldQueue
 
     private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId): void
     {
-        // Data-only FCM message — NEVER include plaintext message body or decryption key
+        // Add notification block for OS system-tray delivery when app is closed, while preserving E2EE
         $message = CloudMessage::withTarget('token', $token)
+            ->withNotification(Notification::create($this->senderName, 'New message'))
             ->withData([
                 'type'           => 'new_message',
                 'chat_id'        => (string) $this->conversationId,
