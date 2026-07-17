@@ -283,6 +283,50 @@ const DecryptedAttachment = ({ attach, conversationId }: DecryptedAttachmentProp
     );
 };
 
+const compressAndCropImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                reject(new Error('Failed to get 2D canvas context'));
+                return;
+            }
+
+            // Calculate center-crop square parameters
+            const size = Math.min(img.width, img.height);
+            const sx = (img.width - size) / 2;
+            const sy = (img.height - size) / 2;
+
+            // Draw center-cropped portion onto the 400x400 canvas
+            ctx.drawImage(img, sx, sy, size, size, 0, 0, 400, 400);
+
+            // Convert to JPEG blob with 85% compression quality
+            canvas.toBlob(
+                (blob) => {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error('Canvas conversion to Blob failed'));
+                    }
+                },
+                'image/jpeg',
+                0.85
+            );
+            
+            // Clean up memory
+            URL.revokeObjectURL(img.src);
+        };
+        img.onerror = (err) => {
+            reject(err);
+        };
+    });
+};
+
 export default function Dashboard() {
     const { auth } = usePage().props as any;
     const [currentUser, setCurrentUser] = useState<User>(auth?.user as User);
@@ -624,10 +668,10 @@ export default function Dashboard() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append('avatar', file);
-
         try {
+            const compressedBlob = await compressAndCropImage(file);
+            const formData = new FormData();
+            formData.append('avatar', compressedBlob, 'avatar.jpg');
             const response = await fetch(`/web/conversations/${activeConversation.id}/avatar`, {
                 method: 'POST',
                 headers: {
@@ -1176,10 +1220,11 @@ export default function Dashboard() {
         const file = files[0];
 
         setIsUploadingAvatar(true);
-        const formData = new FormData();
-        formData.append('avatar', file);
 
         try {
+            const compressedBlob = await compressAndCropImage(file);
+            const formData = new FormData();
+            formData.append('avatar', compressedBlob, 'avatar.jpg');
             const response = await fetch('/web/profile/avatar', {
                 method: 'POST',
                 headers: {
@@ -1893,14 +1938,14 @@ export default function Dashboard() {
 
                     {/* Glass Search Input */}
                     <div className="px-5 py-3">
-                        <div className="relative flex h-11 w-full items-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.02] bg-neutral-50 px-4 focus-within:border-[#C88B37]/80 focus-within:ring-1 focus-within:ring-[#C88B37] transition-all duration-300">
-                            <Search className="h-4 w-4 text-neutral-500 mr-2" />
+                        <div className="relative flex h-10 w-full items-center rounded-full border dark:border-white/8 border-neutral-200/80 dark:bg-white/[0.02] bg-neutral-50/50 px-4 focus-within:border-[#C88B37]/60 focus-within:ring-1 focus-within:ring-[#C88B37]/60 focus-within:shadow-[0_0_12px_rgba(200,139,55,0.12)] transition-all duration-300">
+                            <Search className="h-3.5 w-3.5 text-neutral-400 mr-2 shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Search users, groups, chats..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="flex-1 bg-transparent text-sm dark:text-white text-neutral-800 placeholder-neutral-400 dark:placeholder-neutral-500 outline-none border-none focus:ring-0 p-0 transition-colors duration-300"
+                                className="flex-1 bg-transparent text-xs dark:text-neutral-200 text-neutral-800 placeholder-neutral-400 dark:placeholder-neutral-500 outline-none border-none focus:ring-0 p-0 transition-colors duration-300"
                             />
                         </div>
                     </div>
@@ -2301,31 +2346,33 @@ export default function Dashboard() {
                                 {/* Message Search Bar */}
                                 {showMessageSearch && (
                                     <div className="px-6 py-2 border-b dark:border-white/5 border-neutral-200 flex items-center gap-2 dark:bg-[#0F0F0F] bg-white relative z-10">
-                                        <Search className="h-3.5 w-3.5 text-neutral-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search messages..."
-                                            value={messageSearchQuery}
-                                            onChange={(e) => setMessageSearchQuery(e.target.value)}
-                                            className="flex-1 bg-transparent text-xs outline-none border-none dark:text-white text-neutral-800 focus:ring-0"
-                                            autoFocus
-                                        />
-                                        {messageSearchQuery && (
-                                            <button
-                                                onClick={() => setMessageSearchQuery('')}
-                                                className="text-[10px] text-neutral-500 dark:hover:text-white hover:text-neutral-900 mr-2"
-                                            >
-                                                Clear
-                                            </button>
-                                        )}
+                                        <div className="flex-1 relative flex h-9 items-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.02] bg-neutral-50 px-3.5 focus-within:border-[#C88B37]/60 focus-within:ring-1 focus-within:ring-[#C88B37]/60 focus-within:shadow-[0_0_10px_rgba(200,139,55,0.1)] transition-all duration-300">
+                                            <Search className="h-3.5 w-3.5 text-neutral-400 mr-2" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search messages..."
+                                                value={messageSearchQuery}
+                                                onChange={(e) => setMessageSearchQuery(e.target.value)}
+                                                className="flex-1 bg-transparent text-xs outline-none border-none dark:text-white text-neutral-800 dark:placeholder-neutral-500 placeholder-neutral-400 focus:ring-0 p-0"
+                                                autoFocus
+                                            />
+                                            {messageSearchQuery && (
+                                                <button
+                                                    onClick={() => setMessageSearchQuery('')}
+                                                    className="text-[10px] text-neutral-400 hover:text-neutral-600 dark:hover:text-white font-medium cursor-pointer ml-1"
+                                                >
+                                                    Clear
+                                                </button>
+                                            )}
+                                        </div>
                                         <button
                                             onClick={() => {
                                                 setShowMessageSearch(false);
                                                 setMessageSearchQuery('');
                                             }}
-                                            className="p-1 rounded hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
+                                            className="text-xs text-neutral-500 dark:hover:text-white hover:text-neutral-900 ml-1 transition-colors cursor-pointer"
                                         >
-                                            <X className="h-3.5 w-3.5" />
+                                            Close
                                         </button>
                                     </div>
                                 )}
@@ -2353,11 +2400,11 @@ export default function Dashboard() {
                                                 )}
 
                                                 {/* Chat Bubble */}
-                                                <div className={`text-sm leading-relaxed border relative group/msg ${msg.type === 'image'
-                                                        ? 'p-1.5 rounded-2xl dark:bg-white/[0.01] bg-neutral-100 dark:border-white/5 border-neutral-200/50 max-w-sm'
+                                                <div className={`text-sm leading-relaxed relative group/msg ${msg.type === 'image'
+                                                        ? 'p-1.5 rounded-2xl border dark:border-white/5 border-neutral-200/50 dark:bg-white/[0.01] bg-neutral-100 max-w-sm'
                                                         : isMe
-                                                            ? 'p-3 bubble-sent border-[#C88B37]/35 text-white'
-                                                            : 'p-3 bubble-received border-neutral-200/20 shadow-sm transition-all duration-200'
+                                                            ? 'p-3 bubble-sent text-white'
+                                                            : 'p-3 bubble-received border dark:border-white/5 border-neutral-200/50 shadow-sm transition-all duration-200'
                                                     }`}>
 
                                                     {/* Hover Actions Menu */}
@@ -2580,7 +2627,7 @@ export default function Dashboard() {
                                 <div className="p-4 bg-transparent relative z-10 w-full shrink-0">
                                     <form
                                         onSubmit={handleSendMessage}
-                                        className="flex items-center gap-3 p-2 rounded-2xl border dark:border-white/5 border-neutral-200/80 dark:bg-black/45 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.15)] backdrop-blur-md max-w-4xl mx-auto w-full transition-all duration-300"
+                                        className="flex items-center gap-2 p-1.5 pl-3 rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.03] bg-neutral-50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-lg max-w-4xl mx-auto w-full focus-within:border-[#C88B37]/60 focus-within:shadow-[0_8px_32px_rgba(200,139,55,0.08)] transition-all duration-300"
                                     >
                                         <input
                                             type="file"
@@ -2592,36 +2639,36 @@ export default function Dashboard() {
                                         <button
                                             type="button"
                                             onClick={triggerFileSelect}
-                                            className="p-2.5 rounded-xl border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-neutral-400 dark:hover:text-white hover:text-neutral-800 transition-all cursor-pointer shrink-0"
+                                            className="p-2 rounded-full text-neutral-400 dark:hover:text-white hover:text-neutral-800 hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
                                             title="Upload File"
                                             disabled={isUploading}
                                         >
-                                            <Paperclip className="h-4.5 w-4.5" />
+                                            <Paperclip className="h-4 w-4" />
                                         </button>
 
-                                        <div className="flex-1 relative flex items-center h-11 rounded-xl border dark:border-white/10 border-neutral-200 dark:bg-white/[0.02] bg-neutral-50 px-4 focus-within:border-[#C88B37]/80 focus-within:ring-1 focus-within:ring-[#C88B37] transition-all duration-300 min-w-0">
-                                            <input
-                                                type="text"
-                                                placeholder="Type your secure message..."
-                                                value={messageInput}
-                                                onChange={handleInputChange}
-                                                className="w-full bg-transparent outline-none border-none text-xs dark:text-white text-neutral-800 dark:placeholder-neutral-500 placeholder-neutral-400 focus:ring-0 p-0 transition-colors duration-300"
-                                                disabled={isUploading}
-                                            />
-                                            <button
-                                                type="button"
-                                                className="p-1 rounded-full text-neutral-500 hover:text-[#C88B37] transition-colors cursor-pointer shrink-0 ml-1"
-                                            >
-                                                <Smile className="h-4.5 w-4.5" />
-                                            </button>
-                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Type your secure message..."
+                                            value={messageInput}
+                                            onChange={handleInputChange}
+                                            className="flex-1 bg-transparent outline-none border-none text-sm dark:text-neutral-100 text-neutral-800 dark:placeholder-neutral-500 placeholder-neutral-400 focus:ring-0 px-2 py-2.5 transition-colors duration-300 min-w-0"
+                                            disabled={isUploading}
+                                        />
+
+                                        <button
+                                            type="button"
+                                            className="p-2 rounded-full text-neutral-400 hover:text-[#C88B37] hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
+                                            title="Add Emoji"
+                                        >
+                                            <Smile className="h-4.5 w-4.5" />
+                                        </button>
 
                                         <button
                                             type="submit"
                                             disabled={!messageInput.trim() || isUploading}
-                                            className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#C88B37] hover:bg-[#ae7428] text-black shadow-[0_4px_12px_rgba(200,139,55,0.2)] disabled:opacity-50 disabled:hover:bg-[#C88B37] disabled:shadow-none transition-all cursor-pointer shrink-0"
+                                            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C88B37] hover:bg-[#ae7428] text-black shadow-[0_4px_12px_rgba(200,139,55,0.25)] hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200 cursor-pointer shrink-0"
                                         >
-                                            <Send className="h-4 w-4" />
+                                            <Send className="h-3.5 w-3.5" />
                                         </button>
                                     </form>
                                 </div>
@@ -3169,8 +3216,8 @@ export default function Dashboard() {
 
                         {friendsModalTab === 'search' ? (
                             <div className="space-y-4">
-                                <div className="relative flex h-10 w-full items-center rounded-xl border dark:border-white/10 border-neutral-200 dark:bg-white/[0.02] bg-neutral-50 px-4 focus-within:border-[#C88B37] transition-all">
-                                    <Search className="h-4 w-4 text-neutral-500 mr-2" />
+                                <div className="relative flex h-10 w-full items-center rounded-full border dark:border-white/8 border-neutral-200/80 dark:bg-white/[0.02] bg-neutral-50 px-4 focus-within:border-[#C88B37]/60 focus-within:ring-1 focus-within:ring-[#C88B37]/60 focus-within:shadow-[0_0_12px_rgba(200,139,55,0.12)] transition-all duration-300">
+                                    <Search className="h-3.5 w-3.5 text-neutral-400 mr-2 shrink-0" />
                                     <input
                                         type="text"
                                         placeholder="Search by name, username, or email..."
@@ -3179,7 +3226,7 @@ export default function Dashboard() {
                                             setFriendsSearchQuery(e.target.value);
                                             searchUsers(e.target.value);
                                         }}
-                                        className="flex-1 bg-transparent text-xs dark:text-white text-neutral-900 placeholder-neutral-500 outline-none border-none focus:ring-0 p-0"
+                                        className="flex-1 bg-transparent text-xs dark:text-neutral-200 text-neutral-900 placeholder-neutral-400 dark:placeholder-neutral-500 outline-none border-none focus:ring-0 p-0 transition-colors duration-300"
                                     />
                                 </div>
 
