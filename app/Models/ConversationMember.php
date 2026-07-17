@@ -16,11 +16,13 @@ class ConversationMember extends Model
         'joined_at',
         'last_read_message_id',
         'cleared_at',
+        'hidden_at',
     ];
 
     protected $casts = [
         'joined_at' => 'datetime',
         'cleared_at' => 'datetime',
+        'hidden_at' => 'datetime',
     ];
 
     public function conversation(): BelongsTo

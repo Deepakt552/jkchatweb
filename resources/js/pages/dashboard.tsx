@@ -2314,14 +2314,16 @@ export default function Dashboard() {
                                                     <div className="border-t dark:border-white/5 border-neutral-100 my-1" />
                                                     <button
                                                         onClick={async () => {
-                                                            if (confirm('Are you sure you want to clear this conversation history?')) {
+                                                            if (confirm('Are you sure you want to clear this conversation history? An admin can restore it later if needed.')) {
                                                                 try {
                                                                     const response = await fetch(`/web/conversations/${activeConversationId}/clear`, {
                                                                         method: 'POST',
                                                                         headers: {
                                                                             'Accept': 'application/json',
+                                                                            'Content-Type': 'application/json',
                                                                             'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
-                                                                        }
+                                                                        },
+                                                                        body: JSON.stringify({ mode: 'clear' }),
                                                                     });
                                                                     if (response.ok) {
                                                                         setMessages([]);
@@ -3704,14 +3706,16 @@ export default function Dashboard() {
                         <div className="border-t dark:border-white/5 border-neutral-100 my-1" />
                         <button
                             onClick={async () => {
-                                if (confirm('Are you sure you want to delete this chat locally?')) {
+                                if (confirm('Delete this chat from your list? History is soft-deleted and can be restored by an admin.')) {
                                     try {
                                         await fetch(`/web/conversations/${conv.id}/clear`, {
                                             method: 'POST',
                                             headers: {
                                                 'Accept': 'application/json',
+                                                'Content-Type': 'application/json',
                                                 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
-                                            }
+                                            },
+                                            body: JSON.stringify({ mode: 'delete' }),
                                         });
                                         setConversations(prev => prev.filter(c => c.id !== conv.id));
                                         if (activeConversationId === conv.id) {

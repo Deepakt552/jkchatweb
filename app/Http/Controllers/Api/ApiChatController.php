@@ -215,6 +215,13 @@ class ApiChatController extends Controller
         $user = $request->user();
         $conversationId = (int)$id;
 
+        $request->validate([
+            // clear = hide message history; delete = also hide chat from list
+            'mode' => 'nullable|in:clear,delete',
+        ]);
+
+        $mode = $request->input('mode', 'clear');
+
         $member = \App\Models\ConversationMember::where('conversation_id', $conversationId)
             ->where('user_id', $user->id)
             ->first();
@@ -223,31 +230,44 @@ class ApiChatController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
-        $member->update(['cleared_at' => now()]);
-
-        // Clean up messages from database if all members have cleared
-        $members = \App\Models\ConversationMember::where('conversation_id', $conversationId)->get();
-        if ($members->every(fn($m) => !is_null($m->cleared_at))) {
-            $minClearedAt = $members->min('cleared_at');
-            
-            $messagesToDelete = \App\Models\Message::where('conversation_id', $conversationId)
-                ->where('created_at', '<=', $minClearedAt)
-                ->get();
-                
-            foreach ($messagesToDelete as $msg) {
-                foreach ($msg->attachments as $attachment) {
-                    try {
-                        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($attachment->file_path)) {
-                            \Illuminate\Support\Facades\Storage::disk('local')->delete($attachment->file_path);
-                        }
-                    } catch (\Exception $e) {}
-                    $attachment->delete();
-                }
-                $msg->delete();
-            }
+        $effectAt = now();
+        $previousClearedAt = $member->cleared_at;
+        $previousHiddenAt = $member->hidden_at;
+        $update = ['cleared_at' => $effectAt];
+        if ($mode === 'delete') {
+            $update['hidden_at'] = $effectAt;
         }
+        $member->update($update);
 
-        return response()->json(['message' => 'Chat cleared successfully.']);
+        // Soft-delete only: messages & attachments stay on server so admins can restore.
+        \App\Models\ChatSoftDeletion::create([
+            'conversation_id' => $conversationId,
+            'user_id' => $user->id,
+            'action' => $mode === 'delete' ? 'delete' : 'clear',
+            'effect_at' => $effectAt,
+            'meta' => [
+                'previous_cleared_at' => $previousClearedAt,
+                'previous_hidden_at' => $previousHiddenAt,
+            ],
+        ]);
+
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'action' => $mode === 'delete' ? 'chat.delete_soft' : 'chat.clear_soft',
+            'resource_type' => 'conversation',
+            'resource_id' => (string) $conversationId,
+            'old_values' => null,
+            'new_values' => ['mode' => $mode, 'effect_at' => $effectAt->toIso8601String()],
+            'ip_address' => $request->ip() ?? '0.0.0.0',
+            'user_agent' => $request->userAgent(),
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => $mode === 'delete'
+                ? 'Chat deleted successfully (recoverable by admin).'
+                : 'Chat cleared successfully (recoverable by admin).',
+        ]);
     }
 
     public function updateGroup(Request $request, $id)

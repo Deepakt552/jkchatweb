@@ -12,8 +12,9 @@ class EloquentConversationRepository implements ConversationRepositoryInterface
 {
     public function findOrCreateDirectConversation(int $user1, int $user2): Conversation
     {
-        // Find existing direct conversation with both members
-        $conv = Conversation::where('type', 'direct')
+        // Find existing direct conversation with both members (include soft-deleted)
+        $conv = Conversation::withTrashed()
+            ->where('type', 'direct')
             ->whereHas('conversationMembers', function ($query) use ($user1) {
                 $query->where('user_id', $user1);
             })
@@ -23,6 +24,15 @@ class EloquentConversationRepository implements ConversationRepositoryInterface
             ->first();
 
         if ($conv) {
+            if ($conv->trashed()) {
+                $conv->restore();
+                $conv->update(['deleted_by' => null, 'delete_reason' => null]);
+            }
+            // Un-hide for both members so the chat reappears when they message again
+            ConversationMember::where('conversation_id', $conv->id)
+                ->whereIn('user_id', [$user1, $user2])
+                ->update(['hidden_at' => null]);
+
             return $conv;
         }
 
@@ -80,6 +90,19 @@ class EloquentConversationRepository implements ConversationRepositoryInterface
         $conversations = Conversation::whereHas('members', function ($query) use ($userId) {
                 $query->where('users.id', $userId);
             })
+            // Hide conversations the user soft-deleted until they get new activity
+            ->whereHas('conversationMembers', function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->where(function ($q) {
+                        $q->whereNull('hidden_at')
+                            ->orWhereExists(function ($exists) {
+                                $exists->select(DB::raw(1))
+                                    ->from('messages')
+                                    ->whereColumn('messages.conversation_id', 'conversation_members.conversation_id')
+                                    ->whereColumn('messages.created_at', '>', 'conversation_members.hidden_at');
+                            });
+                    });
+            })
             ->when($since, fn($q) => $q->where('updated_at', '>', $since)) // delta filter
             ->with([
                 'members',
@@ -110,6 +133,7 @@ class EloquentConversationRepository implements ConversationRepositoryInterface
                 ->where('sender_id', '!=', $userId)
                 ->where('is_deleted', false)
                 ->when($lastReadId, fn($q) => $q->where('id', '>', $lastReadId))
+                ->when($member?->cleared_at, fn($q) => $q->where('created_at', '>', $member->cleared_at))
                 ->count();
 
             $conv->unread_count = $unreadCount;
