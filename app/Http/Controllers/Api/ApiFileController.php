@@ -79,6 +79,10 @@ class ApiFileController extends Controller
                 'encryption_key' => $request->encryption_key,
             ]);
 
+            // Broadcast the message with its new attachment to recipients in real time
+            $message = \App\Models\Message::with(['sender', 'attachments'])->findOrFail($request->message_id);
+            broadcast(new \App\Events\MessageSent($message))->toOthers();
+
             return response()->json([
                 'status' => 'completed',
                 'attachment' => $attachment,
