@@ -19,6 +19,7 @@ class SettingController extends Controller
             'file_upload_limit' => '104857600', // 100MB
             'allowed_file_types' => 'pdf,doc,docx,xls,xlsx,zip,rar,txt,png,jpg,jpeg',
             'privacy_mode_enabled' => '1',
+            'admin_toast_notifications_enabled' => '1',
             'backup_schedule' => 'daily',
             'maintenance_mode' => '0',
             'smtp_host' => '127.0.0.1',
@@ -46,6 +47,7 @@ class SettingController extends Controller
             'file_upload_limit' => 'required|numeric',
             'allowed_file_types' => 'required|string',
             'privacy_mode_enabled' => 'required|boolean',
+            'admin_toast_notifications_enabled' => 'sometimes|boolean',
             'backup_schedule' => 'required|string|in:manual,daily,weekly,monthly',
             'maintenance_mode' => 'required|boolean',
             'smtp_host' => 'nullable|string',

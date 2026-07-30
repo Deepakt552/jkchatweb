@@ -51,6 +51,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Security logs
     Route::get('/security', [LogController::class, 'index'])->name('security.index');
+    Route::get('/security/live-events', [LogController::class, 'liveEvents'])->name('security.live_events');
 });
 
 require __DIR__.'/settings.php';

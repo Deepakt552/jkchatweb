@@ -69,7 +69,7 @@ export default function SettingsPage({ settings }: Props) {
                     <button 
                         type="submit" 
                         disabled={form.processing}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#C88B37] px-4 py-2 text-sm font-semibold text-black hover:bg-[#b0782f] shadow-sm hover:scale-[1.02] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#C88B37] to-[#AA7122] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#C88B37]/20 hover:brightness-110 hover:scale-[1.02] transition-all duration-300"
                     >
                         {form.processing ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -154,6 +154,19 @@ export default function SettingsPage({ settings }: Props) {
                             />
                             <label htmlFor="privacyMode" className="text-sm font-medium">
                                 Enforce Privacy Policy (Hide chat transcripts from Administrators)
+                            </label>
+                        </div>
+
+                        <div className="flex items-center gap-3 pt-2 border-t border-neutral-100 dark:border-white/5">
+                            <input 
+                                type="checkbox" 
+                                id="adminToastNotifications" 
+                                checked={(form.data as any).admin_toast_notifications_enabled !== false}
+                                onChange={(e) => form.setData('admin_toast_notifications_enabled' as any, e.target.checked)}
+                                className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#C88B37] focus:ring-[#C88B37]"
+                            />
+                            <label htmlFor="adminToastNotifications" className="text-sm font-medium">
+                                Enable Real-time Admin Toast Notifications (Live popups for Login, Logout, App Uninstall & Soft Deletions)
                             </label>
                         </div>
                     </div>

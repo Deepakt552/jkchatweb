@@ -171,7 +171,7 @@ export default function Users({ users, filters }: Props) {
                     <div className="flex flex-wrap items-center gap-2">
                         <button 
                             onClick={() => setIsAddOpen(true)}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-[#C88B37] px-4 py-2 text-sm font-semibold text-black hover:bg-[#b0782f] shadow-sm hover:scale-[1.02] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#C88B37] to-[#AA7122] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#C88B37]/20 hover:brightness-110 hover:scale-[1.02] transition-all duration-300"
                         >
                             <Plus className="h-4 w-4" />
                             Add Account
@@ -411,7 +411,7 @@ export default function Users({ users, filters }: Props) {
                                     <button 
                                         type="submit" 
                                         disabled={addForm.processing}
-                                        className="inline-flex items-center gap-1 rounded-lg bg-[#C88B37] px-4 py-2 text-sm font-semibold text-black hover:bg-[#b0782f] shadow-sm"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#C88B37] to-[#AA7122] px-5 py-2 text-sm font-bold text-white shadow-md shadow-[#C88B37]/20 hover:brightness-110 transition-all duration-200"
                                     >
                                         {addForm.processing && <Loader2 className="h-4 w-4 animate-spin" />}
                                         Create
@@ -512,7 +512,7 @@ export default function Users({ users, filters }: Props) {
                                     <button 
                                         type="submit" 
                                         disabled={editForm.processing}
-                                        className="inline-flex items-center gap-1 rounded-lg bg-[#C88B37] px-4 py-2 text-sm font-semibold text-black hover:bg-[#b0782f] shadow-sm"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#C88B37] to-[#AA7122] px-5 py-2 text-sm font-bold text-white shadow-md shadow-[#C88B37]/20 hover:brightness-110 transition-all duration-200"
                                     >
                                         {editForm.processing && <Loader2 className="h-4 w-4 animate-spin" />}
                                         Save Changes
