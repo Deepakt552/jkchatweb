@@ -39,9 +39,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Chat management (soft-delete + admin restore)
     Route::get('/chats', [ChatManagementController::class, 'index'])->name('chats.index');
     Route::post('/chats/bulk-restore', [ChatManagementController::class, 'bulkRestore'])->name('chats.bulk-restore');
+    Route::post('/chats/{id}/restore', [ChatManagementController::class, 'restore'])->name('chats.restore');
     Route::post('/messages/{id}/restore', [ChatManagementController::class, 'restoreMessage'])->name('messages.restore');
     Route::delete('/messages/{id}', [ChatManagementController::class, 'destroyMessage'])->name('messages.destroy');
-    Route::post('/chats/{id}/restore', [ChatManagementController::class, 'restore'])->name('chats.restore');
     Route::get('/chats/{id}', [ChatManagementController::class, 'show'])->name('chats.show');
     Route::delete('/chats/{id}', [ChatManagementController::class, 'destroyConversation'])->name('chats.destroy');
 
