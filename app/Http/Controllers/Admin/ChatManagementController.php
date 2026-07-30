@@ -278,8 +278,9 @@ class ChatManagementController extends Controller
     public function restore(Request $request, $id)
     {
         $data = $request->validate([
-            'mode' => 'required|in:full,from_date',
-            'from_date' => 'required_if:mode,from_date|nullable|date',
+            'mode' => 'required|in:full,from_date,date_range',
+            'from_date' => 'required_if:mode,from_date,date_range|nullable|date',
+            'to_date' => 'required_if:mode,date_range|nullable|date|after_or_equal:from_date',
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer',
             'restore_conversation' => 'nullable|boolean',
@@ -329,6 +330,11 @@ class ChatManagementController extends Controller
                     ->orWhere('action', 'admin_wipe');
             });
         }
+        if ($data['mode'] === 'date_range' && !empty($data['from_date']) && !empty($data['to_date'])) {
+            $start = Carbon::parse($data['from_date'])->startOfDay();
+            $end = Carbon::parse($data['to_date'])->endOfDay();
+            $deletionQuery->whereBetween('created_at', [$start, $end]);
+        }
         $deletionQuery->update([
             'restored_at' => now(),
             'restored_by' => $admin->id,
@@ -343,6 +349,7 @@ class ChatManagementController extends Controller
             'new_values' => [
                 'mode' => $data['mode'],
                 'from_date' => $data['from_date'] ?? null,
+                'to_date' => $data['to_date'] ?? null,
                 'user_ids' => $data['user_ids'] ?? 'all',
             ],
             'ip_address' => $request->ip() ?? '0.0.0.0',

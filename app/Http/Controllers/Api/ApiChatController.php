@@ -380,8 +380,9 @@ class ApiChatController extends Controller
     public function myRestore(Request $request)
     {
         $request->validate([
-            'mode' => 'required|in:full,from_date',
-            'from_date' => 'required_if:mode,from_date|nullable|date',
+            'mode' => 'required|in:full,from_date,date_range',
+            'from_date' => 'required_if:mode,from_date,date_range|nullable|date',
+            'to_date' => 'required_if:mode,date_range|nullable|date|after_or_equal:from_date',
             'conversation_ids' => 'nullable|array',
             'conversation_ids.*' => 'integer',
         ]);
@@ -389,6 +390,7 @@ class ApiChatController extends Controller
         $user = $request->user();
         $mode = $request->input('mode', 'full');
         $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
         $conversationIds = $request->input('conversation_ids');
 
         $query = \App\Models\ConversationMember::where('user_id', $user->id);
@@ -413,13 +415,20 @@ class ApiChatController extends Controller
                 ]);
             }
 
-            \App\Models\ChatSoftDeletion::where('conversation_id', $member->conversation_id)
+            $deletionQuery = \App\Models\ChatSoftDeletion::where('conversation_id', $member->conversation_id)
                 ->where('user_id', $user->id)
-                ->pending()
-                ->update([
-                    'restored_at' => now(),
-                    'restored_by' => $user->id,
-                ]);
+                ->pending();
+
+            if ($mode === 'date_range' && $fromDate && $toDate) {
+                $start = \Carbon\Carbon::parse($fromDate)->startOfDay();
+                $end = \Carbon\Carbon::parse($toDate)->endOfDay();
+                $deletionQuery->whereBetween('created_at', [$start, $end]);
+            }
+
+            $deletionQuery->update([
+                'restored_at' => now(),
+                'restored_by' => $user->id,
+            ]);
 
             $restoredCount++;
         }
