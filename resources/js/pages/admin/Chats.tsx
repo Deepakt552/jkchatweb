@@ -59,6 +59,7 @@ interface Message {
     type: string;
     created_at: string;
     is_deleted?: boolean;
+    is_restored?: boolean;
     sender?: { name: string; username: string } | null;
 }
 
@@ -679,8 +680,13 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                                                 className="group relative rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 text-xs dark:border-white/5 dark:bg-[#0A0A0A]/50"
                                             >
                                                 <div className="mb-1 flex items-center justify-between font-semibold text-neutral-600 dark:text-neutral-400">
-                                                    <span>
+                                                    <span className="flex items-center gap-1.5">
                                                         {msg.sender?.name || `User ID: ${msg.sender_id}`}
+                                                        {msg.is_restored && (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                                                                <RotateCcw className="h-3 w-3 text-amber-600" /> Restored
+                                                            </span>
+                                                        )}
                                                     </span>
                                                     <span className="font-normal">
                                                         {new Date(msg.created_at).toLocaleString()}

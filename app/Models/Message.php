@@ -24,7 +24,18 @@ class Message extends Model
         'is_deleted' => 'boolean',
     ];
 
-    protected $appends = ['read_by', 'delivered_by', 'status'];
+    protected $appends = ['read_by', 'delivered_by', 'status', 'is_restored'];
+
+    public function getIsRestoredAttribute(): bool
+    {
+        if ($this->is_deleted) return false;
+        if ($this->relationLoaded('edits')) {
+            return $this->edits->contains(fn ($e) => str_contains(strtolower($e->new_body), 'deleted'));
+        }
+        return MessageEdit::where('message_id', $this->id)
+            ->where('new_body', 'like', '%deleted%')
+            ->exists();
+    }
 
     public function getReadByAttribute(): array
     {
