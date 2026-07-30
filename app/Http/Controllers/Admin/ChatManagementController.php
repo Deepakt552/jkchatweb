@@ -223,6 +223,8 @@ class ChatManagementController extends Controller
             'body' => $restoredBody,
         ]);
 
+        broadcast(new \App\Events\MessageEdited($message->fresh()))->toOthers();
+
         AuditLog::create([
             'user_id' => $request->user()->id,
             'action' => 'message.admin_restore',
@@ -342,6 +344,7 @@ class ChatManagementController extends Controller
                 'is_deleted' => false,
                 'body' => $restoredBody,
             ]);
+            broadcast(new \App\Events\MessageEdited($msg->fresh()))->toOthers();
         }
 
         // Mark pending soft-deletion records as restored
