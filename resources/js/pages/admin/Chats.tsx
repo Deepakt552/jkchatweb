@@ -92,6 +92,95 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
     const [restoreMode, setRestoreMode] = useState<'full' | 'from_date' | 'date_range'>('full');
     const [restoreFromDate, setRestoreFromDate] = useState('');
     const [restoreToDate, setRestoreToDate] = useState('');
+    const [isRestoring, setIsRestoring] = useState(false);
+    const [bulkFrom, setBulkFrom] = useState('');
+    const [bulkTo, setBulkTo] = useState('');
+    const [isBulkRestoring, setIsBulkRestoring] = useState(false);
+
+    const applyFilters = (nextTab = tab) => {
+        router.get(
+            '/admin/chats',
+            {
+                tab: nextTab,
+                search: search || undefined,
+                from: from || undefined,
+                to: to || undefined,
+            },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
+    const handleViewMessages = async (conv: Conversation) => {
+        setSelectedConv(conv);
+        setIsLoadingMessages(true);
+        setRestoreMode('full');
+        setRestoreFromDate('');
+        try {
+            const res = await fetch(`/admin/chats/${conv.id}`);
+            const data = await res.json();
+            setMessages(data.messages);
+        } catch (e) {
+            console.error('Failed to load chat messages', e);
+        } finally {
+            setIsLoadingMessages(false);
+        }
+    };
+
+    const handleDeleteConversation = (id: number) => {
+        if (
+            confirm(
+                'Soft-delete this conversation? Messages stay on the server and can be restored later from the Deleted tab.',
+            )
+        ) {
+            router.delete(`/admin/chats/${id}`, {
+                onSuccess: () => setSelectedConv(null),
+            });
+        }
+    };
+
+    const handleDeleteMessage = async (msgId: number) => {
+        if (confirm('Soft-delete this message content? The row is kept for audit.')) {
+            try {
+                await fetch(`/admin/messages/${msgId}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrfToken() },
+                });
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === msgId
+                            ? { ...m, is_deleted: true, body: '[This message was deleted by admin]' }
+                            : m,
+                    ),
+                );
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    };
+
+    const handleRestoreMessage = async (msgId: number) => {
+        if (confirm('Restore this message to its original content?')) {
+            try {
+                const res = await fetch(`/admin/messages/${msgId}/restore`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                    },
+                });
+                const data = await res.json();
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === msgId
+                            ? { ...m, is_deleted: false, body: data.restored_body || m.body }
+                            : m,
+                    ),
+                );
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    };
 
     const handleRestore = async (
         convId: number,
