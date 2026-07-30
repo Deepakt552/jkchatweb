@@ -60,6 +60,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/conversations/group', [ApiChatController::class, 'startGroupChat']);
     Route::post('/conversations/{id}/update', [ApiChatController::class, 'updateGroup']);
     Route::post('/conversations/{id}/avatar', [ApiChatController::class, 'uploadGroupAvatar']);
+    Route::get('/my-pending-restores', [ApiChatController::class, 'myPendingRestores']);
+    Route::post('/my-restore', [ApiChatController::class, 'myRestore']);
 
     // File Management
     Route::post('/files/upload-chunk', [ApiFileController::class, 'uploadChunk']);

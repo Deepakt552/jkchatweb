@@ -157,6 +157,30 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
         }
     };
 
+    const handleRestoreMessage = async (msgId: number) => {
+        if (confirm('Restore this message to its original content?')) {
+            try {
+                const res = await fetch(`/admin/messages/${msgId}/restore`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                    },
+                });
+                const data = await res.json();
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === msgId
+                            ? { ...m, is_deleted: false, body: data.restored_body || m.body }
+                            : m,
+                    ),
+                );
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    };
+
     const handleRestore = async (
         convId: number,
         options?: { mode?: 'full' | 'from_date'; fromDate?: string },
@@ -578,12 +602,19 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                                                 </p>
                                                 <div className="mt-1 flex items-center justify-between text-[10px] text-neutral-400">
                                                     <span>Format: {msg.type}</span>
-                                                    {!msg.is_deleted && (
+                                                    {!msg.is_deleted ? (
                                                         <button
                                                             onClick={() => handleDeleteMessage(msg.id)}
                                                             className="flex items-center gap-0.5 text-rose-600 opacity-0 transition-opacity hover:underline group-hover:opacity-100"
                                                         >
                                                             <Trash2 className="h-3 w-3" /> Soft-delete
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleRestoreMessage(msg.id)}
+                                                            className="flex items-center gap-0.5 text-emerald-600 font-semibold transition-opacity hover:underline"
+                                                        >
+                                                            <RotateCcw className="h-3 w-3" /> Restore Message
                                                         </button>
                                                     )}
                                                 </div>

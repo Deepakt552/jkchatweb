@@ -169,16 +169,71 @@ class ChatManagementController extends Controller
         ]);
     }
 
-    public function destroyMessage($id)
+    public function destroyMessage(Request $request, $id)
     {
         $message = Message::findOrFail($id);
+        
+        // Save original body into MessageEdit before replacing
+        \App\Models\MessageEdit::create([
+            'message_id' => $message->id,
+            'old_body' => $message->body,
+            'new_body' => '[This message was deleted by admin]',
+            'edited_at' => now(),
+        ]);
+
         // Soft content-delete (keep row for audit / possible restore)
         $message->update([
             'is_deleted' => true,
             'body' => '[This message was deleted by admin]',
         ]);
 
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'message.admin_soft_delete',
+            'resource_type' => 'message',
+            'resource_id' => (string) $id,
+            'old_values' => ['body' => $message->body],
+            'new_values' => ['is_deleted' => true],
+            'ip_address' => $request->ip() ?? '0.0.0.0',
+            'user_agent' => $request->userAgent(),
+            'created_at' => now(),
+        ]);
+
         return response()->json(['message' => 'Message soft-deleted successfully by admin.']);
+    }
+
+    public function restoreMessage(Request $request, $id)
+    {
+        $message = Message::findOrFail($id);
+        
+        // Find latest MessageEdit to recover original body
+        $edit = \App\Models\MessageEdit::where('message_id', $message->id)
+            ->orderByDesc('id')
+            ->first();
+
+        $restoredBody = $edit ? $edit->old_body : $message->body;
+
+        $message->update([
+            'is_deleted' => false,
+            'body' => $restoredBody,
+        ]);
+
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'message.admin_restore',
+            'resource_type' => 'message',
+            'resource_id' => (string) $id,
+            'old_values' => ['is_deleted' => true],
+            'new_values' => ['is_deleted' => false, 'body' => $restoredBody],
+            'ip_address' => $request->ip() ?? '0.0.0.0',
+            'user_agent' => $request->userAgent(),
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Message restored successfully.',
+            'restored_body' => $restoredBody,
+        ]);
     }
 
     public function destroyConversation(Request $request, $id)

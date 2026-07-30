@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface LoginForm {
+    [key: string]: any;
     email: string;
     password: string;
     remember: boolean;

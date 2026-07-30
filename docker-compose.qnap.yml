@@ -1,0 +1,146 @@
+name: jkchat
+
+services:
+  # PHP Application (Laravel)
+  app:
+    build:
+      context: /share/Web/jkweb
+      dockerfile: Dockerfile
+    image: jkchat-app
+    container_name: jkchat-app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: jkchat
+      DB_USERNAME: root
+      DB_PASSWORD: rootpassword
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - /share/Web/jkweb:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # Nginx Web Server
+  webserver:
+    image: nginx:alpine
+    container_name: jkchat-webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8000:80"
+    volumes:
+      - /share/Web/jkweb:/var/www/html
+      - /share/Web/jkweb/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+  # MySQL Database Server
+  db:
+    image: mysql:8.0
+    container_name: jkchat-db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: jkchat
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Redis In-Memory Data Store
+  redis:
+    image: redis:alpine
+    container_name: jkchat-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  # Laravel Reverb (WebSockets Server)
+  reverb:
+    build:
+      context: /share/Web/jkweb
+      dockerfile: Dockerfile
+    container_name: jkchat-reverb
+    restart: unless-stopped
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: jkchat
+      DB_USERNAME: root
+      DB_PASSWORD: rootpassword
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    volumes:
+      - /share/Web/jkweb:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # Laravel Queue Worker
+  queue:
+    build:
+      context: /share/Web/jkweb
+      dockerfile: Dockerfile
+    container_name: jkchat-queue
+    restart: unless-stopped
+    command: php artisan queue:work --verbose --tries=3 --timeout=90
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: jkchat
+      DB_USERNAME: root
+      DB_PASSWORD: rootpassword
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - /share/Web/jkweb:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+# Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+# Persistent Volumes
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local

@@ -349,4 +349,84 @@ class ApiChatController extends Controller
 
         return response()->json($conv->load('members'));
     }
+
+    public function myPendingRestores(Request $request)
+    {
+        $user = $request->user();
+
+        $clearedMembers = \App\Models\ConversationMember::with(['conversation.members'])
+            ->where('user_id', $user->id)
+            ->where(function ($q) {
+                $q->whereNotNull('cleared_at')->orWhereNotNull('hidden_at');
+            })
+            ->get();
+
+        $restores = $clearedMembers->map(function ($m) {
+            return [
+                'conversation_id' => $m->conversation_id,
+                'conversation_name' => $m->conversation?->name ?? 'Direct Chat',
+                'type' => $m->conversation?->type,
+                'cleared_at' => $m->cleared_at,
+                'hidden_at' => $m->hidden_at,
+            ];
+        });
+
+        return response()->json([
+            'count' => $restores->count(),
+            'restores' => $restores,
+        ]);
+    }
+
+    public function myRestore(Request $request)
+    {
+        $request->validate([
+            'mode' => 'required|in:full,from_date',
+            'from_date' => 'required_if:mode,from_date|nullable|date',
+            'conversation_ids' => 'nullable|array',
+            'conversation_ids.*' => 'integer',
+        ]);
+
+        $user = $request->user();
+        $mode = $request->input('mode', 'full');
+        $fromDate = $request->input('from_date');
+        $conversationIds = $request->input('conversation_ids');
+
+        $query = \App\Models\ConversationMember::where('user_id', $user->id);
+        if (!empty($conversationIds)) {
+            $query->whereIn('conversation_id', $conversationIds);
+        }
+
+        $members = $query->get();
+        $restoredCount = 0;
+
+        foreach ($members as $member) {
+            if ($mode === 'full') {
+                $member->update([
+                    'cleared_at' => null,
+                    'hidden_at' => null,
+                ]);
+            } else {
+                $boundary = \Carbon\Carbon::parse($fromDate)->startOfDay()->subSecond();
+                $member->update([
+                    'cleared_at' => $boundary,
+                    'hidden_at' => null,
+                ]);
+            }
+
+            \App\Models\ChatSoftDeletion::where('conversation_id', $member->conversation_id)
+                ->where('user_id', $user->id)
+                ->pending()
+                ->update([
+                    'restored_at' => now(),
+                    'restored_by' => $user->id,
+                ]);
+
+            $restoredCount++;
+        }
+
+        return response()->json([
+            'message' => 'Chat history restored successfully.',
+            'restored_count' => $restoredCount,
+        ]);
+    }
 }
