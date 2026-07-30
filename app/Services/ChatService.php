@@ -132,7 +132,34 @@ class ChatService
                     'message_id' => ['You can only delete messages for everyone if you are the sender.'],
                 ]);
             }
+            $originalBody = $message->body;
             $result = $this->messageRepository->deleteForEveryone($messageId);
+
+            // Create soft deletion log for Admin Chat Monitor
+            \App\Models\ChatSoftDeletion::create([
+                'conversation_id' => $message->conversation_id,
+                'user_id' => $userId,
+                'action' => 'delete',
+                'effect_at' => now(),
+                'meta' => [
+                    'message_id' => $messageId,
+                    'type' => 'message_soft_delete',
+                    'original_body' => $originalBody,
+                ],
+            ]);
+
+            \App\Models\AuditLog::create([
+                'user_id' => $userId,
+                'action' => 'message.delete_soft_everyone',
+                'resource_type' => 'message',
+                'resource_id' => (string) $messageId,
+                'old_values' => ['body' => $originalBody],
+                'new_values' => ['is_deleted' => true],
+                'ip_address' => request()->ip() ?? '0.0.0.0',
+                'user_agent' => request()->userAgent(),
+                'created_at' => now(),
+            ]);
+
             broadcast(new MessageDeleted($messageId, $message->conversation_id))->toOthers();
             return $result;
         }

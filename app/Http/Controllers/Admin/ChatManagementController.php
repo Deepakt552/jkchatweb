@@ -42,27 +42,31 @@ class ChatManagementController extends Controller
                 ->paginate(15)
                 ->withQueryString();
         } elseif ($tab === 'cleared') {
-            // Conversations users have cleared/deleted (still recoverable)
+            // Conversations users have cleared/deleted or contain soft-deleted messages (recoverable)
             $conversations = Conversation::with(['members', 'conversationMembers.user'])
                 ->withCount('messages')
-                ->whereHas('conversationMembers', function ($q) use ($from, $to) {
-                    $q->where(function ($inner) {
-                        $inner->whereNotNull('cleared_at')->orWhereNotNull('hidden_at');
-                    })
+                ->where(function ($query) use ($from, $to) {
+                    $query->whereHas('conversationMembers', function ($q) use ($from, $to) {
+                        $q->where(function ($inner) {
+                            $inner->whereNotNull('cleared_at')->orWhereNotNull('hidden_at');
+                        })
                         ->when($from, function ($qq) use ($from) {
-                            $qq->where(function ($w) use ($from) {
-                                $start = Carbon::parse($from)->startOfDay();
+                            $start = Carbon::parse($from)->startOfDay();
+                            $qq->where(function ($w) use ($start) {
                                 $w->where('cleared_at', '>=', $start)
-                                    ->orWhere('hidden_at', '>=', $start);
+                                  ->orWhere('hidden_at', '>=', $start);
                             });
                         })
                         ->when($to, function ($qq) use ($to) {
-                            $qq->where(function ($w) use ($to) {
-                                $end = Carbon::parse($to)->endOfDay();
+                            $end = Carbon::parse($to)->endOfDay();
+                            $qq->where(function ($w) use ($end) {
                                 $w->where('cleared_at', '<=', $end)
-                                    ->orWhere('hidden_at', '<=', $end);
+                                  ->orWhere('hidden_at', '<=', $end);
                             });
                         });
+                    })->orWhereHas('messages', function ($mq) {
+                        $mq->where('is_deleted', true);
+                    });
                 })
                 ->when($search, function ($q) use ($search) {
                     $q->where(function ($inner) use ($search) {

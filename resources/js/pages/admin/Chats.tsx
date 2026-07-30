@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     MessageSquare,
     Shield,
@@ -14,6 +14,10 @@ import {
     Search,
     Archive,
     History,
+    Zap,
+    RefreshCw,
+    CheckCircle2,
+    Clock,
 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -96,6 +100,47 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
     const [bulkFrom, setBulkFrom] = useState('');
     const [bulkTo, setBulkTo] = useState('');
     const [isBulkRestoring, setIsBulkRestoring] = useState(false);
+    const [liveSync, setLiveSync] = useState(true);
+
+    useEffect(() => {
+        if (!liveSync) return;
+        const interval = setInterval(() => {
+            router.reload({ preserveScroll: true, preserveState: true });
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [liveSync]);
+
+    const handleBulkRestore = async () => {
+        if (!bulkFrom || !bulkTo) {
+            alert('Pick both From Date and To Date for bulk restore.');
+            return;
+        }
+        if (!confirm(`Bulk restore all deleted and cleared chats between ${bulkFrom} and ${bulkTo}?`)) return;
+
+        setIsBulkRestoring(true);
+        try {
+            const res = await fetch('/admin/chats/bulk-restore', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ from: bulkFrom, to: bulkTo, mode: 'full' }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || 'Bulk restore failed');
+            }
+            alert('Bulk restoration completed successfully!');
+            applyFilters(tab);
+        } catch (e: any) {
+            alert(e.message || 'Bulk restore failed');
+        } finally {
+            setIsBulkRestoring(false);
+        }
+    };
 
     const applyFilters = (nextTab = tab) => {
         router.get(
@@ -237,37 +282,6 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
         }
     };
 
-    const handleBulkRestore = () => {
-        if (!bulkFrom || !bulkTo) {
-            alert('Select both From and To dates for bulk restore.');
-            return;
-        }
-        if (
-            !confirm(
-                `Restore all user clears/deletes and admin wipes between ${bulkFrom} and ${bulkTo}?`,
-            )
-        ) {
-            return;
-        }
-        setIsBulkRestoring(true);
-        router.post(
-            '/admin/chats/bulk-restore',
-            {
-                from: bulkFrom,
-                to: bulkTo,
-                mode: 'full',
-                actions: ['clear', 'delete', 'admin_wipe'],
-            },
-            {
-                onFinish: () => setIsBulkRestoring(false),
-                onSuccess: () => {
-                    setBulkFrom('');
-                    setBulkTo('');
-                },
-            },
-        );
-    };
-
     const conversationTitle = (conv: Conversation) =>
         conv.type === 'direct'
             ? `Direct: ${conv.members.map((m) => m.name).join(' & ')}`
@@ -283,15 +297,80 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Chat Monitor" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Chat Monitor</h1>
-                        <p className="text-neutral-500">
-                            Oversee conversations. User clear/delete is soft — restore history any time.
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Chat Monitor</h1>
+                            <button
+                                type="button"
+                                onClick={() => setLiveSync(!liveSync)}
+                                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+                                    liveSync
+                                        ? 'border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                        : 'border-neutral-200 bg-neutral-100 text-neutral-600 dark:border-white/10 dark:bg-white/5 dark:text-neutral-400'
+                                }`}
+                            >
+                                {liveSync ? (
+                                    <>
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                                        </span>
+                                        <span>Live Auto-Sync Active (4s)</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <RefreshCw className="h-3 w-3" />
+                                        <span>Live Sync Paused</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Real-time chat monitoring. Soft-deleted messages stay in database & recoverable by admin.
                         </p>
                     </div>
-                    <div className="text-xs text-neutral-500">
-                        Pending restores: <span className="font-semibold text-[#C88B37]">{stats.pending_restores}</span>
+                </div>
+
+                {/* Metric Stats Overview Cards */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-[#C88B37]/20 bg-gradient-to-br from-amber-500/10 via-white to-white p-4 shadow-sm dark:bg-gradient-to-br dark:from-[#C88B37]/15 dark:to-[#0F0F0F]">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                                Active Chats
+                            </span>
+                            <MessageSquare className="h-5 w-5 text-[#C88B37]" />
+                        </div>
+                        <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
+                            {stats.active}
+                        </div>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">Active conversations</span>
+                    </div>
+
+                    <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-white to-white p-4 shadow-sm dark:bg-gradient-to-br dark:from-emerald-950/30 dark:to-[#0F0F0F]">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                                Cleared / Soft-Deleted
+                            </span>
+                            <History className="h-5 w-5 text-emerald-600" />
+                        </div>
+                        <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
+                            {stats.cleared}
+                        </div>
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400">Recoverable user chat history</span>
+                    </div>
+
+                    <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-500/10 via-white to-white p-4 shadow-sm dark:bg-gradient-to-br dark:from-rose-950/30 dark:to-[#0F0F0F]">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-300">
+                                Admin Soft-Wiped
+                            </span>
+                            <Archive className="h-5 w-5 text-rose-600" />
+                        </div>
+                        <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
+                            {stats.deleted}
+                        </div>
+                        <span className="text-[11px] text-rose-600 dark:text-rose-400">Soft-deleted conversations</span>
                     </div>
                 </div>
 
