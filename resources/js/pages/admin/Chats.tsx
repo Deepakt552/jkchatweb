@@ -684,7 +684,7 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                                                         {msg.sender?.name || `User ID: ${msg.sender_id}`}
                                                         {msg.is_restored && (
                                                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                                                                <RotateCcw className="h-3 w-3 text-amber-600" /> Restored
+                                                                <RotateCcw className="h-3 w-3 text-amber-600" /> Restored by Admin
                                                             </span>
                                                         )}
                                                     </span>
