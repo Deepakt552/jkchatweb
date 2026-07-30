@@ -322,6 +322,23 @@ class ChatManagementController extends Controller
             }
         }
 
+        // Un-delete soft-deleted messages in this conversation so they reappear
+        $messagesQuery = Message::where('conversation_id', $id)->where('is_deleted', true);
+        if ($data['mode'] === 'date_range' && !empty($data['from_date']) && !empty($data['to_date'])) {
+            $start = Carbon::parse($data['from_date'])->startOfDay();
+            $end = Carbon::parse($data['to_date'])->endOfDay();
+            $messagesQuery->whereBetween('created_at', [$start, $end]);
+        }
+        $deletedMsgs = $messagesQuery->get();
+        foreach ($deletedMsgs as $msg) {
+            $edit = MessageEdit::where('message_id', $msg->id)->orderByDesc('id')->first();
+            $restoredBody = $edit ? $edit->old_body : $msg->body;
+            $msg->update([
+                'is_deleted' => false,
+                'body' => $restoredBody,
+            ]);
+        }
+
         // Mark pending soft-deletion records as restored
         $deletionQuery = ChatSoftDeletion::pending()->where('conversation_id', $id);
         if (! empty($data['user_ids'])) {

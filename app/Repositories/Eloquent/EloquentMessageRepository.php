@@ -64,19 +64,18 @@ class EloquentMessageRepository implements MessageRepositoryInterface
     {
         $message = Message::findOrFail($messageId);
         
-        // Delete all associated physical files and database attachment records
-        foreach ($message->attachments as $attachment) {
-            try {
-                if (Storage::disk('local')->exists($attachment->file_path)) {
-                    Storage::disk('local')->delete($attachment->file_path);
-                }
-            } catch (\Exception $e) {
-                // Keep trying to clean up DB records even if disk actions error out
-            }
-            $attachment->delete();
-        }
+        // Save original message body in MessageEdit history for admin restore capability
+        \App\Models\MessageEdit::create([
+            'message_id' => $message->id,
+            'old_body' => $message->body,
+            'new_body' => '[This message was deleted]',
+            'edited_at' => now(),
+        ]);
 
-        return $message->delete();
+        return $message->update([
+            'is_deleted' => true,
+            'body' => '[This message was deleted]',
+        ]);
     }
 
     public function getMessages(int $conversationId, int $limit = 50, ?int $beforeId = null, $clearedAt = null, ?int $sinceId = null): Collection
