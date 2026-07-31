@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\FileService;
 use App\Repositories\Contracts\MessageRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ApiFileController extends Controller
 {
@@ -54,9 +55,19 @@ class ApiFileController extends Controller
         );
 
         if ($finalPath) {
-            // Merging complete, create attachment model linked to message
-            $fileMime = mime_content_type(storage_path('app/private/' . $finalPath)) ?: 'application/octet-stream';
-            $fileSize = filesize(storage_path('app/private/' . $finalPath));
+            $disk = config('filesystems.default', 'qnap');
+            $fullPath = Storage::disk($disk)->path($finalPath);
+
+            $fileSize = 0;
+            $fileMime = 'application/octet-stream';
+
+            if (file_exists($fullPath)) {
+                $fileSize = filesize($fullPath);
+                $fileMime = mime_content_type($fullPath) ?: 'application/octet-stream';
+            } elseif (Storage::disk($disk)->exists($finalPath)) {
+                $fileSize = Storage::disk($disk)->size($finalPath);
+                $fileMime = Storage::disk($disk)->mimeType($finalPath) ?: 'application/octet-stream';
+            }
 
             // Determine file type category
             $ext = strtolower(pathinfo($request->file_name, PATHINFO_EXTENSION));
@@ -79,9 +90,12 @@ class ApiFileController extends Controller
                 'encryption_key' => $request->encryption_key,
             ]);
 
+            // Update the message body on the server DB to store attachment metadata JSON
+            $message->update(['body' => json_encode($attachment)]);
+
             // Broadcast the message with its new attachment to recipients in real time
-            $message = \App\Models\Message::with(['sender', 'attachments'])->findOrFail($request->message_id);
-            broadcast(new \App\Events\MessageSent($message))->toOthers();
+            $updatedMessage = \App\Models\Message::with(['sender', 'attachments'])->findOrFail($request->message_id);
+            broadcast(new \App\Events\MessageSent($updatedMessage))->toOthers();
 
             return response()->json([
                 'status' => 'completed',
