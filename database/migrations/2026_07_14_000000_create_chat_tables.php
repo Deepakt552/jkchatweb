@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('designation')->nullable()->after('department');
             $table->enum('online_status', ['online', 'offline', 'away'])->default('offline')->after('designation');
             $table->timestamp('last_seen_at')->nullable()->after('online_status');
-            $table->json('privacy_settings')->nullable()->after('last_seen_at');
+            $table->longText('privacy_settings')->nullable()->after('last_seen_at');
             $table->boolean('is_enabled')->default(true)->after('privacy_settings');
             $table->boolean('is_suspended')->default(false)->after('is_enabled');
             $table->boolean('force_password_change')->default(false)->after('is_suspended');
@@ -209,8 +209,8 @@ return new class extends Migration
             $table->string('action');
             $table->string('resource_type');
             $table->string('resource_id');
-            $table->json('old_values')->nullable();
-            $table->json('new_values')->nullable();
+            $table->longText('old_values')->nullable();
+            $table->longText('new_values')->nullable();
             $table->string('ip_address', 45);
             $table->text('user_agent')->nullable();
             $table->timestamp('created_at')->useCurrent();

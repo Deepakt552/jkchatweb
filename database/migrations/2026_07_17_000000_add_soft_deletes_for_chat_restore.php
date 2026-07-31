@@ -33,7 +33,7 @@ return new class extends Migration
             $table->timestamp('effect_at')->nullable(); // cleared_at / hidden_at / deleted_at value
             $table->timestamp('restored_at')->nullable();
             $table->foreignId('restored_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->json('meta')->nullable();
+            $table->longText('meta')->nullable();
             $table->timestamps();
 
             $table->index(['conversation_id', 'restored_at']);
