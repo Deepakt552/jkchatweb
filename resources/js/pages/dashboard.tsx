@@ -697,6 +697,7 @@ export default function Dashboard() {
 
     const activeConversationIdRef = useRef<number | null>(null);
     const currentUserRef = useRef<User | null>(null);
+    const subscribedChannelsRef = useRef<Set<number>>(new Set());
 
     useEffect(() => {
         activeConversationIdRef.current = activeConversationId;
@@ -1587,13 +1588,16 @@ export default function Dashboard() {
         };
     }, []);
 
-    // Setup Echo listener whenever conversations list changes
+    // Setup Echo listener for conversations continuously without tear-down loops
     useEffect(() => {
         if (conversations.length === 0) return;
 
         const echo = initEcho();
 
         conversations.forEach(conv => {
+            if (subscribedChannelsRef.current.has(conv.id)) return;
+            subscribedChannelsRef.current.add(conv.id);
+
             const channelName = `conversation.${conv.id}`;
 
             // Join conversation private channel
@@ -1775,12 +1779,6 @@ export default function Dashboard() {
                     }));
                 });
         });
-
-        return () => {
-            conversations.forEach(c => {
-                echo.leave(`conversation.${c.id}`);
-            });
-        };
     }, [conversations]);
 
     // Periodic presence heartbeat: refresh conversations every 45s to keep online status fresh
@@ -1791,10 +1789,11 @@ export default function Dashboard() {
         return () => clearInterval(interval);
     }, []);
 
-    // Fetch messages when conversation changes
+    // Fetch messages & mark as read when conversation changes
     useEffect(() => {
         if (activeConversationId) {
             fetchMessages(activeConversationId);
+            markAsRead(activeConversationId);
             setTypingUsers({});
         }
     }, [activeConversationId]);
