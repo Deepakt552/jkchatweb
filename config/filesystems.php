@@ -57,6 +57,12 @@ return [
             'throw' => false,
         ],
 
+        'qnap' => [
+            'driver' => 'local',
+            'root' => env('QNAP_STORAGE_PATH', '\\\\192.168.150.5\\navkar\\Departments\\Information Technology\\jkchat'),
+            'throw' => false,
+        ],
+
     ],
 
     /*

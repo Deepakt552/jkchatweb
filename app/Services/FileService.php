@@ -32,8 +32,9 @@ class FileService
         $files = Storage::disk('local')->files($tempPath);
         if (count($files) === $totalChunks) {
             // Merge all chunks
+            $disk = config('filesystems.default', 'qnap');
             $finalPath = "attachments/" . uniqid() . '_' . $originalName;
-            $finalFullPath = Storage::disk('local')->path($finalPath);
+            $finalFullPath = Storage::disk($disk)->path($finalPath);
 
             // Ensure directory exists
             if (!file_exists(dirname($finalFullPath))) {
@@ -88,10 +89,11 @@ class FileService
             ]);
         }
 
-        if (!Storage::disk('local')->exists($attachment->file_path)) {
+        $disk = config('filesystems.default', 'qnap');
+        if (!Storage::disk($disk)->exists($attachment->file_path)) {
             abort(404, 'File not found on storage disk.');
         }
 
-        return Storage::disk('local')->download($attachment->file_path, $attachment->file_name);
+        return Storage::disk($disk)->download($attachment->file_path, $attachment->file_name);
     }
 }
