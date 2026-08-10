@@ -1453,12 +1453,14 @@ export default function Dashboard() {
     // Dynamic browser tab title with unread badge (N)
     useEffect(() => {
         const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
-        if (totalUnread > 0) {
-            document.title = `(${totalUnread}) SecureChat - Workspace`;
+        const pendingCount = pendingRequests.length;
+        const totalBadge = totalUnread + pendingCount;
+        if (totalBadge > 0) {
+            document.title = `(${totalBadge}) SecureChat - Workspace`;
         } else {
             document.title = 'SecureChat - Workspace';
         }
-    }, [conversations]);
+    }, [conversations, pendingRequests]);
 
     const fetchContactProfile = async (partnerId: number) => {
         try {
@@ -1956,10 +1958,15 @@ export default function Dashboard() {
                                     fetchSentRequests();
                                     setShowFriendsModal(true);
                                 }}
-                                className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#C88B37] hover:bg-[#C88B37]/15 hover:border-[#C88B37]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
+                                className="relative flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#C88B37] hover:bg-[#C88B37]/15 hover:border-[#C88B37]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
                                 title="Manage Contacts & Invites"
                             >
                                 <UserPlus className="h-4.5 w-4.5" />
+                                {pendingRequests.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse">
+                                        {pendingRequests.length}
+                                    </span>
+                                )}
                             </button>
 
                             {/* Profile Settings Button */}
