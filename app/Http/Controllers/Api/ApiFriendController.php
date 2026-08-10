@@ -146,7 +146,44 @@ class ApiFriendController extends Controller
             ->limit(20)
             ->get();
 
-        return response()->json($users);
+        $friendIdsDirect = \App\Models\Friend::where('user_id', $userId)->pluck('friend_id')->toArray();
+        $friendIdsInverse = \App\Models\Friend::where('friend_id', $userId)->pluck('user_id')->toArray();
+
+        $acceptedRequestFriendIds = \App\Models\FriendRequest::where(function ($q) use ($userId) {
+            $q->where('sender_id', $userId)->orWhere('receiver_id', $userId);
+        })->where('status', 'accepted')->get()->map(function ($r) use ($userId) {
+            return $r->sender_id === $userId ? $r->receiver_id : $r->sender_id;
+        })->toArray();
+
+        $allFriendIds = array_unique(array_merge($friendIdsDirect, $friendIdsInverse, $acceptedRequestFriendIds));
+
+        $friendRequests = \App\Models\FriendRequest::where(function ($q) use ($userId) {
+            $q->where('sender_id', $userId)->orWhere('receiver_id', $userId);
+        })->where('status', 'pending')->get();
+
+        $results = $users->map(function ($u) use ($userId, $allFriendIds, $friendRequests) {
+            $isFriend = in_array($u->id, $allFriendIds);
+            $req = $friendRequests->first(function ($r) use ($u, $userId) {
+                return ($r->sender_id === $userId && $r->receiver_id === $u->id) ||
+                       ($r->receiver_id === $userId && $r->sender_id === $u->id);
+            });
+
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'username' => $u->username,
+                'email' => $u->email,
+                'avatar_url' => $u->avatar_url,
+                'department' => $u->department,
+                'designation' => $u->designation,
+                'is_friend' => $isFriend,
+                'has_pending_request' => $req !== null,
+                'is_sender' => $req ? ($req->sender_id === $userId) : false,
+                'request_id' => $req ? $req->id : null,
+            ];
+        });
+
+        return response()->json($results);
     }
 
     /**

@@ -14,6 +14,17 @@ class EloquentFriendRepository implements FriendRepositoryInterface
 {
     public function sendRequest(int $senderId, int $receiverId): FriendRequest
     {
+        // If receiver already sent a pending request to sender, auto-accept it!
+        $reverseReq = FriendRequest::where('sender_id', $receiverId)
+            ->where('receiver_id', $senderId)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($reverseReq) {
+            $this->acceptRequest($reverseReq->id);
+            return $reverseReq;
+        }
+
         return FriendRequest::updateOrCreate(
             ['sender_id' => $senderId, 'receiver_id' => $receiverId],
             ['status' => 'pending']
@@ -127,7 +138,15 @@ class EloquentFriendRepository implements FriendRepositoryInterface
 
     public function areFriends(int $user1, int $user2): bool
     {
-        return Friend::where('user_id', $user1)->where('friend_id', $user2)->exists();
+        return Friend::where(function ($q) use ($user1, $user2) {
+            $q->where('user_id', $user1)->where('friend_id', $user2);
+        })->orWhere(function ($q) use ($user1, $user2) {
+            $q->where('user_id', $user2)->where('friend_id', $user1);
+        })->exists() || FriendRequest::where(function ($q) use ($user1, $user2) {
+            $q->where('sender_id', $user1)->where('receiver_id', $user2);
+        })->orWhere(function ($q) use ($user1, $user2) {
+            $q->where('sender_id', $user2)->where('receiver_id', $user1);
+        })->where('status', 'accepted')->exists();
     }
 
     public function isBlocked(int $user1, int $user2): bool
