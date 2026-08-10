@@ -33,6 +33,11 @@ class MessageRead implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'MessageRead';
+    }
+
     public function broadcastWith(): array
     {
         return [

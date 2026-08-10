@@ -28,6 +28,11 @@ class MessageEdited implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'MessageEdited';
+    }
+
     public function broadcastWith(): array
     {
         return [

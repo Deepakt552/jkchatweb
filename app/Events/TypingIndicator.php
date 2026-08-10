@@ -31,6 +31,11 @@ class TypingIndicator implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'TypingIndicator';
+    }
+
     public function broadcastWith(): array
     {
         return [

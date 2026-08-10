@@ -1615,189 +1615,209 @@ export default function Dashboard() {
 
             const channelName = `conversation.${conv.id}`;
 
-            // Join conversation private channel
-            echo.private(channelName)
-                .listen('MessageSent', (e: any) => {
-                    const chatKey = deriveConversationKey(conv.id);
-                    let body = e.body;
-                    if (e.type === 'text' && e.body && e.iv) {
+            const handleMessageSent = (e: any) => {
+                const chatKey = deriveConversationKey(conv.id);
+                let body = e.body;
+                if (e.type === 'text' && e.body && e.iv) {
+                    body = decryptText(e.body, chatKey, e.iv);
+                }
+
+                // Decrypt the reply parent if it's text and has iv
+                let decryptedReply = e.reply_to;
+                if (decryptedReply && chatKey && decryptedReply.iv && decryptedReply.type === 'text') {
+                    try {
+                        decryptedReply = {
+                            ...decryptedReply,
+                            body: decryptText(decryptedReply.body, chatKey, decryptedReply.iv)
+                        };
+                    } catch (_) {
+                        decryptedReply = {
+                            ...decryptedReply,
+                            body: '[Decryption Failure]'
+                        };
+                    }
+                }
+
+                const incomingMsg: Message = {
+                    id: e.id,
+                    conversation_id: e.conversation_id,
+                    sender_id: e.sender_id,
+                    sender_name: e.sender_name,
+                    type: e.type,
+                    body: body,
+                    is_edited: e.is_edited,
+                    is_deleted: e.is_deleted,
+                    created_at: e.created_at,
+                    attachments: e.attachments,
+                    reply_to_message_id: e.reply_to_message_id,
+                    reply_to: decryptedReply
+                };
+
+                const currentActiveId = activeConversationIdRef.current;
+
+                // Always update the conversations list last message preview immediately
+                setConversations(prev => prev.map(c => {
+                    if (c.id === conv.id) {
+                        return {
+                            ...c,
+                            unread_count: currentActiveId === conv.id ? 0 : c.unread_count + 1,
+                            messages: [incomingMsg]
+                        };
+                    }
+                    return c;
+                }));
+
+                // Send delivery/read receipt for messages from others
+                if (incomingMsg.sender_id !== currentUserRef.current?.id) {
+                    const isTabVisible = document.visibilityState === 'visible';
+                    if (currentActiveId === conv.id && isTabVisible) {
+                        sendMessageReceipt(incomingMsg.id, 'read');
+                    } else {
+                        sendMessageReceipt(incomingMsg.id, 'delivered');
+                        // Trigger HTML5 notification when message arrives in background or other chat
+                        showBrowserNotification(
+                            incomingMsg.sender_name || 'New Message',
+                            incomingMsg.type === 'text' ? incomingMsg.body : `[${incomingMsg.type}]`
+                        );
+                    }
+                }
+
+                // If it is the active conversation, append to messages list
+                if (currentActiveId === conv.id) {
+                    setMessages(prev => {
+                        if (prev.some(m => String(m.id) === String(incomingMsg.id))) return prev;
+                        return [...prev, incomingMsg];
+                    });
+                    const isTabVisible = document.visibilityState === 'visible';
+                    if (isTabVisible) {
+                        markAsRead(conv.id);
+                    }
+                }
+            };
+
+            const handleTyping = (e: any) => {
+                const currentActiveId = activeConversationIdRef.current;
+                if (e.user_id !== currentUserRef.current?.id && conv.id === currentActiveId) {
+                    setTypingUsers(prev => ({
+                        ...prev,
+                        [e.user_id]: e.typing
+                    }));
+                }
+            };
+
+            const handleMessageRead = (e: any) => {
+                setMessages(prev => prev.map(m => {
+                    if (String(m.id) !== String(e.message_id)) return m;
+                    if (e.status === 'read') {
+                        const alreadyRead = m.read_by?.includes(e.user_id);
+                        return alreadyRead ? m : { ...m, read_by: [...(m.read_by || []), e.user_id] };
+                    } else if (e.status === 'delivered') {
+                        const alreadyDelivered = m.delivered_by?.includes(e.user_id);
+                        return alreadyDelivered ? m : { ...m, delivered_by: [...(m.delivered_by || []), e.user_id] };
+                    }
+                    return m;
+                }));
+            };
+
+            const handleMessageEdited = (e: any) => {
+                const chatKey = deriveConversationKey(conv.id);
+                let body = e.body;
+                if (e.iv) {
+                    try {
                         body = decryptText(e.body, chatKey, e.iv);
+                    } catch (err) {
+                        console.error('Decryption error on edited message:', err);
+                        body = '🔒 Decryption failed';
                     }
+                }
 
-                    // Decrypt the reply parent if it's text and has iv
-                    let decryptedReply = e.reply_to;
-                    if (decryptedReply && chatKey && decryptedReply.iv && decryptedReply.type === 'text') {
-                        try {
-                            decryptedReply = {
-                                ...decryptedReply,
-                                body: decryptText(decryptedReply.body, chatKey, decryptedReply.iv)
-                            };
-                        } catch (_) {
-                            decryptedReply = {
-                                ...decryptedReply,
-                                body: '[Decryption Failure]'
-                            };
-                        }
+                setMessages(prev => prev.map(m => {
+                    if (String(m.id) === String(e.id)) {
+                        return {
+                            ...m,
+                            body: body,
+                            is_edited: true,
+                            iv: e.iv,
+                            updated_at: e.updated_at
+                        };
                     }
+                    return m;
+                }));
 
-                    const incomingMsg: Message = {
-                        id: e.id,
-                        conversation_id: e.conversation_id,
-                        sender_id: e.sender_id,
-                        sender_name: e.sender_name,
-                        type: e.type,
-                        body: body,
-                        is_edited: e.is_edited,
-                        is_deleted: e.is_deleted,
-                        created_at: e.created_at,
-                        attachments: e.attachments,
-                        reply_to_message_id: e.reply_to_message_id,
-                        reply_to: decryptedReply
-                    };
-
-                    const currentActiveId = activeConversationIdRef.current;
-
-                    // Always update the conversations list last message preview immediately
-                    setConversations(prev => prev.map(c => {
-                        if (c.id === conv.id) {
+                setConversations(prev => prev.map(c => {
+                    if (c.id === conv.id && c.messages && c.messages.length > 0) {
+                        const lastMsg = c.messages[0];
+                        if (String(lastMsg.id) === String(e.id)) {
                             return {
                                 ...c,
-                                unread_count: currentActiveId === conv.id ? 0 : c.unread_count + 1,
-                                messages: [incomingMsg]
+                                messages: [{
+                                    ...lastMsg,
+                                    body: body,
+                                    is_edited: true,
+                                    iv: e.iv,
+                                    updated_at: e.updated_at
+                                }]
                             };
                         }
-                        return c;
-                    }));
+                    }
+                    return c;
+                }));
+            };
 
-                    // Send delivery/read receipt for messages from others
-                    if (incomingMsg.sender_id !== currentUserRef.current?.id) {
-                        const isTabVisible = document.visibilityState === 'visible';
-                        if (currentActiveId === conv.id && isTabVisible) {
-                            sendMessageReceipt(incomingMsg.id, 'read');
-                        } else {
-                            sendMessageReceipt(incomingMsg.id, 'delivered');
-                            // Trigger HTML5 notification when message arrives in background or other chat
-                            showBrowserNotification(
-                                incomingMsg.sender_name || 'New Message',
-                                incomingMsg.type === 'text' ? incomingMsg.body : `[${incomingMsg.type}]`
-                            );
-                        }
+            const handleMessageDeleted = (e: any) => {
+                setMessages(prev => prev.map(m => {
+                    if (String(m.id) === String(e.id)) {
+                        return {
+                            ...m,
+                            body: '🚫 This message was deleted.',
+                            is_deleted: true,
+                            iv: null
+                        };
                     }
+                    return m;
+                }));
 
-                    // If it is the active conversation, append to messages list
-                    if (currentActiveId === conv.id) {
-                        setMessages(prev => {
-                            if (prev.some(m => String(m.id) === String(incomingMsg.id))) return prev;
-                            return [...prev, incomingMsg];
-                        });
-                        const isTabVisible = document.visibilityState === 'visible';
-                        if (isTabVisible) {
-                            markAsRead(conv.id);
-                        }
-                    }
-                })
-                .listen('TypingIndicator', (e: any) => {
-                    const currentActiveId = activeConversationIdRef.current;
-                    if (e.user_id !== currentUserRef.current?.id && conv.id === currentActiveId) {
-                        setTypingUsers(prev => ({
-                            ...prev,
-                            [e.user_id]: e.typing
-                        }));
-                    }
-                })
-                .listen('MessageRead', (e: any) => {
-                    // Update the read_by / delivered_by arrays on relevant messages
-                    setMessages(prev => prev.map(m => {
-                        if (String(m.id) !== String(e.message_id)) return m;
-                        if (e.status === 'read') {
-                            const alreadyRead = m.read_by?.includes(e.user_id);
-                            return alreadyRead ? m : { ...m, read_by: [...(m.read_by || []), e.user_id] };
-                        } else if (e.status === 'delivered') {
-                            const alreadyDelivered = m.delivered_by?.includes(e.user_id);
-                            return alreadyDelivered ? m : { ...m, delivered_by: [...(m.delivered_by || []), e.user_id] };
-                        }
-                        return m;
-                    }));
-                })
-                .listen('MessageEdited', (e: any) => {
-                    const chatKey = deriveConversationKey(conv.id);
-                    let body = e.body;
-                    if (e.iv) {
-                        try {
-                            body = decryptText(e.body, chatKey, e.iv);
-                        } catch (err) {
-                            console.error('Decryption error on edited message:', err);
-                            body = '🔒 Decryption failed';
-                        }
-                    }
-
-                    // Update local messages state
-                    setMessages(prev => prev.map(m => {
-                        if (String(m.id) === String(e.id)) {
+                setConversations(prev => prev.map(c => {
+                    if (c.id === conv.id && c.messages && c.messages.length > 0) {
+                        const lastMsg = c.messages[0];
+                        if (String(lastMsg.id) === String(e.id)) {
                             return {
-                                ...m,
-                                body: body,
-                                is_edited: true,
-                                iv: e.iv,
-                                updated_at: e.updated_at
+                                ...c,
+                                messages: [{
+                                    ...lastMsg,
+                                    body: '🚫 This message was deleted.',
+                                    is_deleted: true,
+                                    iv: null
+                                }]
                             };
                         }
-                        return m;
-                    }));
+                    }
+                    return c;
+                }));
+            };
 
-                    // Update last message in conversations state
-                    setConversations(prev => prev.map(c => {
-                        if (c.id === conv.id && c.messages && c.messages.length > 0) {
-                            const lastMsg = c.messages[0];
-                            if (String(lastMsg.id) === String(e.id)) {
-                                return {
-                                    ...c,
-                                    messages: [{
-                                        ...lastMsg,
-                                        body: body,
-                                        is_edited: true,
-                                        iv: e.iv,
-                                        updated_at: e.updated_at
-                                    }]
-                                };
-                            }
-                        }
-                        return c;
-                    }));
-                })
-                .listen('MessageDeleted', (e: any) => {
-                    // Update local messages state
-                    setMessages(prev => prev.map(m => {
-                        if (String(m.id) === String(e.id)) {
-                            return {
-                                ...m,
-                                body: '🚫 This message was deleted.',
-                                is_deleted: true,
-                                iv: null
-                            };
-                        }
-                        return m;
-                    }));
-
-                    // Update last message in conversations state
-                    setConversations(prev => prev.map(c => {
-                        if (c.id === conv.id && c.messages && c.messages.length > 0) {
-                            const lastMsg = c.messages[0];
-                            if (String(lastMsg.id) === String(e.id)) {
-                                return {
-                                    ...c,
-                                    messages: [{
-                                        ...lastMsg,
-                                        body: '🚫 This message was deleted.',
-                                        is_deleted: true,
-                                        iv: null
-                                    }]
-                                };
-                            }
-                        }
-                        return c;
-                    }));
-                });
+            // Join conversation private channel and listen for all event variations
+            echo.private(channelName)
+                .listen('MessageSent', handleMessageSent)
+                .listen('.MessageSent', handleMessageSent)
+                .listen('App\\Events\\MessageSent', handleMessageSent)
+                .listen('.App\\Events\\MessageSent', handleMessageSent)
+                .listen('TypingIndicator', handleTyping)
+                .listen('.TypingIndicator', handleTyping)
+                .listen('App\\Events\\TypingIndicator', handleTyping)
+                .listen('.App\\Events\\TypingIndicator', handleTyping)
+                .listen('MessageRead', handleMessageRead)
+                .listen('.MessageRead', handleMessageRead)
+                .listen('App\\Events\\MessageRead', handleMessageRead)
+                .listen('.App\\Events\\MessageRead', handleMessageRead)
+                .listen('MessageEdited', handleMessageEdited)
+                .listen('.MessageEdited', handleMessageEdited)
+                .listen('App\\Events\\MessageEdited', handleMessageEdited)
+                .listen('.App\\Events\\MessageEdited', handleMessageEdited)
+                .listen('MessageDeleted', handleMessageDeleted)
+                .listen('.MessageDeleted', handleMessageDeleted)
+                .listen('App\\Events\\MessageDeleted', handleMessageDeleted)
+                .listen('.App\\Events\\MessageDeleted', handleMessageDeleted);
         });
     }, [conversations]);
 

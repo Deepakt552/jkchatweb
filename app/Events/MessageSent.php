@@ -28,6 +28,11 @@ class MessageSent implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'MessageSent';
+    }
+
     public function broadcastWith(): array
     {
         $this->message->loadMissing(['sender', 'replyTo.sender']);
