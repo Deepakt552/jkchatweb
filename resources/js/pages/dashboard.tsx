@@ -1428,22 +1428,37 @@ export default function Dashboard() {
         const echo = initEcho();
         const userChannel = `user.${currentUser.id}`;
 
+        const handleFriendEvent = (e: any) => {
+            if (e.type === 'received') {
+                showBrowserNotification('New Friend Request', `${e.senderName} sent you a friend request!`);
+                fetchPendingRequests();
+            } else if (e.type === 'accepted') {
+                showBrowserNotification('Request Accepted', `${e.senderName} accepted your friend request!`);
+                fetchFriends();
+                fetchConversations();
+            }
+        };
+
         echo.private(userChannel)
-            .listen('.FriendRequestUpdated', (e: any) => {
-                if (e.type === 'received') {
-                    showBrowserNotification('New Friend Request', `${e.senderName} sent you a friend request!`);
-                    fetchPendingRequests();
-                } else if (e.type === 'accepted') {
-                    showBrowserNotification('Request Accepted', `${e.senderName} accepted your friend request!`);
-                    fetchFriends();
-                    fetchConversations();
-                }
-            });
+            .listen('FriendRequestUpdated', handleFriendEvent)
+            .listen('.FriendRequestUpdated', handleFriendEvent)
+            .listen('App\\Events\\FriendRequestUpdated', handleFriendEvent)
+            .listen('.App\\Events\\FriendRequestUpdated', handleFriendEvent);
 
         return () => {
             echo.leave(userChannel);
         };
     }, [currentUser]);
+
+    // Dynamic browser tab title with unread badge (N)
+    useEffect(() => {
+        const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+        if (totalUnread > 0) {
+            document.title = `(${totalUnread}) SecureChat - Workspace`;
+        } else {
+            document.title = 'SecureChat - Workspace';
+        }
+    }, [conversations]);
 
     const fetchContactProfile = async (partnerId: number) => {
         try {
@@ -1661,6 +1676,11 @@ export default function Dashboard() {
                             sendMessageReceipt(incomingMsg.id, 'read');
                         } else {
                             sendMessageReceipt(incomingMsg.id, 'delivered');
+                            // Trigger HTML5 notification when message arrives in background or other chat
+                            showBrowserNotification(
+                                incomingMsg.sender_name || 'New Message',
+                                incomingMsg.type === 'text' ? incomingMsg.body : `[${incomingMsg.type}]`
+                            );
                         }
                     }
 
