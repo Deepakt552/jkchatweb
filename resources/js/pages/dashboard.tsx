@@ -1417,7 +1417,9 @@ export default function Dashboard() {
     // Request browser notification permissions on load
     useEffect(() => {
         if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
+            try {
+                Promise.resolve(Notification.requestPermission()).catch(() => {});
+            } catch (_) {}
         }
     }, []);
 
