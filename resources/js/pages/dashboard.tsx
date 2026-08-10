@@ -1706,14 +1706,26 @@ export default function Dashboard() {
             };
 
             const handleMessageRead = (e: any) => {
+                const targetMsgId = Number(e.message_id || e.id);
+                const status = e.status || 'read';
+
                 setMessages(prev => prev.map(m => {
-                    if (String(m.id) !== String(e.message_id)) return m;
-                    if (e.status === 'read') {
+                    const mId = Number(m.id);
+                    const isTargetOrPrior = mId <= targetMsgId || String(m.id) === String(targetMsgId);
+                    if (status === 'read' && isTargetOrPrior) {
                         const alreadyRead = m.read_by?.includes(e.user_id);
-                        return alreadyRead ? m : { ...m, read_by: [...(m.read_by || []), e.user_id] };
-                    } else if (e.status === 'delivered') {
+                        return {
+                            ...m,
+                            status: 'read',
+                            read_by: alreadyRead ? (m.read_by || []) : [...(m.read_by || []), e.user_id]
+                        };
+                    } else if (status === 'delivered' && isTargetOrPrior) {
                         const alreadyDelivered = m.delivered_by?.includes(e.user_id);
-                        return alreadyDelivered ? m : { ...m, delivered_by: [...(m.delivered_by || []), e.user_id] };
+                        return {
+                            ...m,
+                            status: m.status === 'read' ? 'read' : 'delivered',
+                            delivered_by: alreadyDelivered ? (m.delivered_by || []) : [...(m.delivered_by || []), e.user_id]
+                        };
                     }
                     return m;
                 }));
@@ -2552,6 +2564,7 @@ export default function Dashboard() {
                                                                     </span>
                                                                     {isMe && (
                                                                         <MessageStatusTick
+                                                                            status={msg.status}
                                                                             readBy={msg.read_by || []}
                                                                             deliveredBy={msg.delivered_by || []}
                                                                             conversationMembers={activeConversation?.members || []}
@@ -3799,39 +3812,35 @@ function ClockIcon({ className }: { className?: string }) {
 
 // Smart message delivery/read tick indicator
 function MessageStatusTick({
+    status,
     readBy,
     deliveredBy,
     conversationMembers,
     currentUserId,
 }: {
-    readBy: number[];
-    deliveredBy: number[];
-    conversationMembers: any[];
+    status?: string;
+    readBy?: number[];
+    deliveredBy?: number[];
+    conversationMembers?: any[];
     currentUserId?: number;
 }) {
-    // Recipients = all members except the sender (current user)
-    const recipients = conversationMembers.filter(m => m.id !== currentUserId);
-    const recipientCount = recipients.length;
+    const rBy = readBy || [];
+    const dBy = deliveredBy || [];
+    const members = conversationMembers || [];
+    const recipients = members.filter(m => m.id !== currentUserId);
 
-    if (recipientCount === 0) {
-        // Just sent (single tick)
-        return <Check className="h-3.5 w-3.5 dark:text-white/60 text-neutral-500" />;
+    // Double Blue Tick: read status or readBy contains recipient
+    const isRead = status === 'read' || rBy.some(id => id !== currentUserId) || (recipients.length > 0 && recipients.every(r => rBy.includes(r.id)));
+    if (isRead) {
+        return <CheckCheck className="h-3.5 w-3.5 text-sky-400 shrink-0" />;
     }
 
-    // Check if ALL recipients have read
-    const allRead = recipients.every(r => readBy.includes(r.id));
-    if (allRead) {
-        // Double blue tick = read by everyone
-        return <CheckCheck className="h-3.5 w-3.5 text-sky-400" />;
+    // Double Grey Tick: delivered status or deliveredBy contains recipient
+    const isDelivered = status === 'delivered' || dBy.some(id => id !== currentUserId) || (recipients.length > 0 && recipients.every(r => dBy.includes(r.id)));
+    if (isDelivered) {
+        return <CheckCheck className="h-3.5 w-3.5 dark:text-white/60 text-neutral-400 shrink-0" />;
     }
 
-    // Check if ALL recipients have at least received (delivered)
-    const allDelivered = recipients.every(r => deliveredBy.includes(r.id));
-    if (allDelivered) {
-        // Double grey tick = delivered to all
-        return <CheckCheck className="h-3.5 w-3.5 dark:text-white/60 text-neutral-500" />;
-    }
-
-    // Otherwise: single grey tick = sent (not yet delivered)
-    return <Check className="h-3.5 w-3.5 dark:text-white/60 text-neutral-500" />;
+    // Single Grey Tick: sent
+    return <Check className="h-3.5 w-3.5 dark:text-white/60 text-neutral-400 shrink-0" />;
 }
