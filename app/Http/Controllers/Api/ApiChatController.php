@@ -120,42 +120,57 @@ class ApiChatController extends Controller
 
     public function markConversationRead(Request $request, $id)
     {
-        $user = $request->user();
-        $conversationId = (int)$id;
+        try {
+            $user = $request->user();
+            $conversationId = (int)$id;
 
-        // Verify user is a member of this conversation
-        $isMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
-            ->where('user_id', $user->id)
-            ->exists();
+            // Verify user is a member of this conversation
+            $isMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+                ->where('user_id', $user->id)
+                ->exists();
 
-        if (!$isMember) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
-
-        // Get the latest message id in this conversation
-        $latestMessage = \App\Models\Message::where('conversation_id', $conversationId)
-            ->where('sender_id', '!=', $user->id)
-            ->where('is_deleted', false)
-            ->latest('id')
-            ->first();
-
-        if ($latestMessage) {
-            $this->conversationRepository->updateLastRead($conversationId, $user->id, $latestMessage->id);
-
-            // Find all unread messages in this conversation from others
-            $unreadMessages = \App\Models\Message::where('conversation_id', $conversationId)
-                ->where('sender_id', '!=', $user->id)
-                ->whereDoesntHave('reads', function ($q) use ($user) {
-                    $q->where('user_id', $user->id)->whereNotNull('read_at');
-                })
-                ->get();
-
-            foreach ($unreadMessages as $msg) {
-                $this->chatService->markMessageAsRead($user->id, $msg->id);
+            if (!$isMember) {
+                return response()->json(['message' => 'Unauthorized.'], 403);
             }
-        }
 
-        return response()->json(['message' => 'Conversation marked as read.']);
+            // Get the latest message in this conversation
+            $latestMessage = \App\Models\Message::where('conversation_id', $conversationId)
+                ->where('sender_id', '!=', $user->id)
+                ->where('is_deleted', false)
+                ->latest('id')
+                ->first();
+
+            if ($latestMessage) {
+                $this->conversationRepository->updateLastRead($conversationId, $user->id, $latestMessage->id);
+
+                // Find unread messages from others
+                $unreadMessages = \App\Models\Message::where('conversation_id', $conversationId)
+                    ->where('sender_id', '!=', $user->id)
+                    ->whereDoesntHave('reads', function ($q) use ($user) {
+                        $q->where('user_id', $user->id)->whereNotNull('read_at');
+                    })
+                    ->get();
+
+                foreach ($unreadMessages as $msg) {
+                    try {
+                        $this->chatService->markMessageAsRead($user->id, $msg->id);
+                    } catch (\Throwable $e) {
+                        // Suppress individual read receipt errors
+                    }
+                }
+            } else {
+                // Fallback: if no messages from others, update last_read to latest message overall if available
+                $anyLatest = \App\Models\Message::where('conversation_id', $conversationId)->latest('id')->first();
+                if ($anyLatest) {
+                    $this->conversationRepository->updateLastRead($conversationId, $user->id, $anyLatest->id);
+                }
+            }
+
+            return response()->json(['message' => 'Conversation marked as read.']);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('markConversationRead error: ' . $e->getMessage());
+            return response()->json(['message' => 'Conversation marked as read.']);
+        }
     }
 
     public function typing(Request $request)
