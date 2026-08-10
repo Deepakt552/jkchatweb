@@ -15,18 +15,22 @@ export const initEcho = () => {
         return window.Echo;
     }
 
+    const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     const host = import.meta.env.VITE_REVERB_HOST || window.location.hostname;
-    const port = import.meta.env.VITE_REVERB_PORT || '8080';
     const key = import.meta.env.VITE_REVERB_APP_KEY || 'securechatkey';
-    const scheme = import.meta.env.VITE_REVERB_SCHEME || 'http';
+    const scheme = import.meta.env.VITE_REVERB_SCHEME || (isHttps ? 'https' : 'http');
+    
+    // In production HTTPS behind reverse proxy, default WSS port is 443 (standard HTTPS/WSS port)
+    const defaultWssPort = isHttps ? 443 : 8080;
+    const port = import.meta.env.VITE_REVERB_PORT ? parseInt(import.meta.env.VITE_REVERB_PORT) : defaultWssPort;
 
     window.Echo = new Echo({
         broadcaster: 'reverb',
         key: key,
         wsHost: host,
-        wsPort: parseInt(port),
-        wssPort: parseInt(port),
-        forceTLS: scheme === 'https',
+        wsPort: port,
+        wssPort: port,
+        forceTLS: scheme === 'https' || isHttps,
         enabledTransports: ['ws', 'wss'],
         // For Inertia.js web, requests are cookie-authenticated, so we don't need token headers
         authEndpoint: '/broadcasting/auth',
