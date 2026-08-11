@@ -123,7 +123,21 @@ class QrLoginController extends Controller
 
         Cache::put($sessionKey, $session, now()->addMinutes(2)); // keep in cache to let the web client poll it successfully
 
-        $deviceDetail = $request->input('device_name', 'Mobile Device') . ' (' . $request->input('os', 'Unknown') . ')';
+        // Create or update device record in devices table
+        $deviceName = $request->input('device_name', 'Web Browser');
+        $osName = $request->input('os', 'Web');
+        \App\Models\Device::updateOrCreate(
+            ['device_identifier' => 'qr_web_' . $sessionId],
+            [
+                'user_id' => $user->id,
+                'name' => $deviceName . ' (QR Scan)',
+                'os' => $osName,
+                'is_verified' => true,
+                'last_active_at' => now(),
+            ]
+        );
+
+        $deviceDetail = $deviceName . ' (' . $osName . ')';
         $this->userService->logActivity($user->id, "Approved web browser login via QR scanner from {$deviceDetail}");
 
         return response()->json([

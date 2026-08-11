@@ -90,7 +90,13 @@ class SendMessagePushNotification implements ShouldQueue
                 ],
                 'payload' => [
                     'aps' => [
-                        'content-available' => 1, // Background wakeup for iOS
+                        'alert' => [
+                            'title' => $this->senderName,
+                            'body'  => 'New message',
+                        ],
+                        'sound' => 'default',
+                        'badge' => 1,
+                        'content-available' => 1,
                     ],
                 ],
             ]);

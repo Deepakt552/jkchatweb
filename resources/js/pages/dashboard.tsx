@@ -607,6 +607,8 @@ export default function Dashboard() {
     // File Sharing state
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadingTargetConvId, setUploadingTargetConvId] = useState<number | null>(null);
+    const [uploadingFileName, setUploadingFileName] = useState<string>('');
 
     // Theme Dark/Light Mode state
     const [isDark, setIsDark] = useState(() => {
@@ -1057,6 +1059,8 @@ export default function Dashboard() {
 
         setIsUploading(true);
         setUploadProgress(0);
+        setUploadingTargetConvId(activeConversationId);
+        setUploadingFileName(originalFile.name);
 
         const ext = originalFile.name.split('.').pop()?.toLowerCase() || '';
         let fileType = 'document';
@@ -1088,6 +1092,8 @@ export default function Dashboard() {
             console.error('File encryption failed:', err);
             setIsUploading(false);
             setUploadProgress(0);
+            setUploadingTargetConvId(null);
+            setUploadingFileName('');
             return;
         }
 
@@ -1159,6 +1165,8 @@ export default function Dashboard() {
         } finally {
             setIsUploading(false);
             setUploadProgress(0);
+            setUploadingTargetConvId(null);
+            setUploadingFileName('');
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
@@ -2621,14 +2629,29 @@ export default function Dashboard() {
                                     <div ref={messagesEndRef} />
                                 </div>
 
-                                {/* Upload Progress Loader Card */}
-                                {isUploading && (
-                                    <div className="mx-6 mb-3 p-3.5 rounded-xl border border-[#C88B37]/45 bg-[#C88B37]/5 backdrop-blur-md flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <LoaderCircle className="h-4.5 w-4.5 text-[#C88B37] animate-spin" />
-                                            <span className="text-xs text-neutral-300 font-semibold">Uploading attachment...</span>
+                                {/* WhatsApp-style Upload Progress Bar - only shown in the active target conversation */}
+                                {isUploading && uploadingTargetConvId === activeConversationId && (
+                                    <div className={`mx-6 mb-3 p-3 rounded-xl border flex items-center justify-between shadow-sm backdrop-blur-md transition-all ${
+                                        isDark ? 'border-[#C88B37]/35 bg-[#181818]/90 text-white' : 'border-[#C88B37]/30 bg-white/90 text-neutral-900'
+                                    }`}>
+                                        <div className="flex items-center gap-3 min-w-0 flex-1 mr-3">
+                                            <div className="relative flex items-center justify-center h-8 w-8 rounded-full bg-[#C88B37]/15 shrink-0">
+                                                <FileText className="h-4 w-4 text-[#C88B37]" />
+                                                <div className="absolute inset-0 rounded-full border-2 border-[#C88B37] border-t-transparent animate-spin" />
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-xs font-semibold truncate">{uploadingFileName || 'Uploading document...'}</span>
+                                                <span className="text-[11px] text-[#C88B37] font-medium">Uploading attachment • {uploadProgress}%</span>
+                                            </div>
                                         </div>
-                                        <span className="text-xs text-[#C88B37] font-bold">{uploadProgress}%</span>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <div className="w-16 h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+                                                <div 
+                                                    className="h-full bg-[#C88B37] transition-all duration-200 rounded-full" 
+                                                    style={{ width: `${uploadProgress}%` }}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
