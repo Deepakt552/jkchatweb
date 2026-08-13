@@ -28,6 +28,9 @@ class SendMessagePushNotification implements ShouldQueue
         private readonly int $conversationId,
         private readonly int $senderId,
         private readonly string $senderName,
+        private readonly string $body = 'New message',
+        private readonly string $type = 'text',
+        private readonly ?string $iv = null,
     ) {}
 
     public function handle(Messaging $messaging): void
@@ -58,9 +61,18 @@ class SendMessagePushNotification implements ShouldQueue
 
     private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId): void
     {
-        // Add notification block for OS system-tray delivery when app is closed, while preserving E2EE
+        $notificationBody = 'New message';
+        if ($this->type === 'image') {
+            $notificationBody = '📷 Photo';
+        } elseif ($this->type === 'document') {
+            $notificationBody = '📄 Document';
+        } elseif ($this->iv === null && !empty($this->body)) {
+            $notificationBody = $this->body;
+        }
+
+        // Add notification block for OS system-tray delivery when app is closed
         $message = CloudMessage::withTarget('token', $token)
-            ->withNotification(Notification::create($this->senderName, 'New message'))
+            ->withNotification(Notification::create($this->senderName, $notificationBody))
             ->withData([
                 'type'           => 'new_message',
                 'chat_id'        => (string) $this->conversationId,
@@ -81,7 +93,7 @@ class SendMessagePushNotification implements ShouldQueue
                     'aps' => [
                         'alert' => [
                             'title' => $this->senderName,
-                            'body'  => 'New message',
+                            'body'  => $notificationBody,
                         ],
                         'sound' => 'default',
                         'badge' => 1,

@@ -101,6 +101,9 @@ class ChatService
             $conversationId,
             $senderId,
             $message->sender->name ?? 'Unknown',
+            $message->body ?? 'New message',
+            $message->type ?? 'text',
+            $message->iv,
         )->onQueue('default');
 
         return $message;
