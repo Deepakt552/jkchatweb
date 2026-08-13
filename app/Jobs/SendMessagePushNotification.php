@@ -62,13 +62,15 @@ class SendMessagePushNotification implements ShouldQueue
                 continue;
             }
 
+            $unreadCount = $this->calculateUserUnreadCount($recipientId);
+
             foreach ($tokens as $deviceId => $token) {
-                $this->sendToDevice($messaging, $token, $deviceId, $recipientId);
+                $this->sendToDevice($messaging, $token, $deviceId, $recipientId, $unreadCount);
             }
         }
     }
 
-    private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId): void
+    private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId, int $badgeCount = 1): void
     {
         // Add notification block for OS system-tray delivery when app is closed, while preserving E2EE
         $message = CloudMessage::withTarget('token', $token)
@@ -96,7 +98,7 @@ class SendMessagePushNotification implements ShouldQueue
                             'body'  => 'New message',
                         ],
                         'sound' => 'default',
-                        'badge' => 1,
+                        'badge' => $badgeCount,
                         'mutable-content' => 1,
                     ],
                 ],
@@ -142,5 +144,26 @@ class SendMessagePushNotification implements ShouldQueue
             Log::debug('Presence check failed (non-critical)', ['error' => $e->getMessage()]);
         }
         return [];
+    }
+     * Calculate total unread messages count across all conversations for a recipient
+     */
+    private function calculateUserUnreadCount(int $userId): int
+    {
+        try {
+            $memberships = ConversationMember::where('user_id', $userId)->get();
+            $total = 0;
+            foreach ($memberships as $member) {
+                $total += Message::where('conversation_id', $member->conversation_id)
+                    ->where('sender_id', '!=', $userId)
+                    ->where('is_deleted', false)
+                    ->when($member->last_read_message_id, fn($q) => $q->where('id', '>', $member->last_read_message_id))
+                    ->when($member->cleared_at, fn($q) => $q->where('created_at', '>', $member->cleared_at))
+                    ->count();
+            }
+            return max(1, $total);
+        } catch (\Throwable $e) {
+            Log::debug('Failed to calculate unread count', ['error' => $e->getMessage()]);
+            return 1;
+        }
     }
 }
