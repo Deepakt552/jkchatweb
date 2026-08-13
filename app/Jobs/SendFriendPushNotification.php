@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Contract\Messaging;
+use Kreait\Firebase\Messaging\ApnsConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
@@ -59,10 +60,11 @@ class SendFriendPushNotification implements ShouldQueue
                     'priority' => 'high',
                     'ttl'      => '86400s',
                 ])
-                ->withApnsConfig([
+                ->withApnsConfig(ApnsConfig::fromArray([
                     'headers' => [
-                        'apns-priority' => '10',
+                        'apns-priority'  => '10',
                         'apns-push-type' => 'alert',
+                        'apns-topic'     => 'com.nbs.jkchat',
                     ],
                     'payload' => [
                         'aps' => [
@@ -74,7 +76,7 @@ class SendFriendPushNotification implements ShouldQueue
                             'badge' => 1,
                         ],
                     ],
-                ]);
+                ]));
 
             try {
                 $messaging->send($message);
