@@ -35,7 +35,7 @@ class SendFriendPushNotification implements ShouldQueue
      */
     public function handle(Messaging $messaging): void
     {
-        $tokens = DeviceToken::where('user_id', $this->recipientId)->pluck('fcm_token', 'device_id');
+        $tokens = DeviceToken::where('user_id', $this->recipientId)->pluck('fcm_token')->unique();
 
         if ($tokens->isEmpty()) {
             Log::info('SendFriendPushNotification skipped: No FCM tokens found', ['user_id' => $this->recipientId]);
@@ -47,7 +47,7 @@ class SendFriendPushNotification implements ShouldQueue
             ? "{$this->senderName} sent you a friend request!" 
             : "{$this->senderName} accepted your friend request!";
 
-        foreach ($tokens as $deviceId => $token) {
+        foreach ($tokens as $token) {
             $message = CloudMessage::withTarget('token', $token)
                 ->withNotification(Notification::create($title, $body))
                 ->withData([

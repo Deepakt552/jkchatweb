@@ -42,16 +42,16 @@ class SendMessagePushNotification implements ShouldQueue
         }
 
         foreach ($recipientIds as $recipientId) {
-            // Get all FCM tokens for this user (multi-device)
-            $tokens = DeviceToken::where('user_id', $recipientId)->pluck('fcm_token', 'device_id');
+            // Get unique FCM tokens for this user (multi-device)
+            $tokens = DeviceToken::where('user_id', $recipientId)->pluck('fcm_token')->unique();
 
             if ($tokens->isEmpty()) {
                 Log::info('SendMessagePushNotification skipped: No FCM tokens found', ['user_id' => $recipientId]);
                 continue;
             }
 
-            foreach ($tokens as $deviceId => $token) {
-                $this->sendToDevice($messaging, $token, $deviceId, $recipientId);
+            foreach ($tokens as $token) {
+                $this->sendToDevice($messaging, $token, 'device', $recipientId);
             }
         }
     }
