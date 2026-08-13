@@ -87,6 +87,7 @@ class SendMessagePushNotification implements ShouldQueue
             ->withApnsConfig([
                 'headers' => [
                     'apns-priority' => '10',
+                    'apns-push-type' => 'alert',
                 ],
                 'payload' => [
                     'aps' => [
@@ -96,7 +97,7 @@ class SendMessagePushNotification implements ShouldQueue
                         ],
                         'sound' => 'default',
                         'badge' => 1,
-                        'content-available' => 1,
+                        'mutable-content' => 1,
                     ],
                 ],
             ]);
