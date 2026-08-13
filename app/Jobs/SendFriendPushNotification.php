@@ -72,7 +72,6 @@ class SendFriendPushNotification implements ShouldQueue
                             ],
                             'sound' => 'default',
                             'badge' => 1,
-                            'mutable-content' => 1,
                         ],
                     ],
                 ]);
@@ -81,19 +80,18 @@ class SendFriendPushNotification implements ShouldQueue
                 $messaging->send($message);
                 Log::info('FCM friend notification sent', [
                     'recipient_id' => $this->recipientId,
-                    'device_id'    => $deviceId,
                     'type'         => $this->type,
                 ]);
             } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
-                DeviceToken::where('device_id', $deviceId)->delete();
-                Log::info('FCM token pruned (UNREGISTERED)', ['device_id' => $deviceId]);
+                DeviceToken::where('fcm_token', $token)->delete();
+                Log::info('FCM token pruned (UNREGISTERED)', ['user_id' => $this->recipientId]);
             } catch (\Kreait\Firebase\Exception\Messaging\InvalidArgument $e) {
-                DeviceToken::where('device_id', $deviceId)->delete();
-                Log::warning('FCM token pruned (invalid)', ['device_id' => $deviceId, 'error' => $e->getMessage()]);
+                DeviceToken::where('fcm_token', $token)->delete();
+                Log::warning('FCM token pruned (invalid)', ['user_id' => $this->recipientId, 'error' => $e->getMessage()]);
             } catch (\Throwable $e) {
                 Log::error('FCM friend send failed', [
-                    'device_id' => $deviceId,
-                    'error'     => $e->getMessage(),
+                    'user_id' => $this->recipientId,
+                    'error'   => $e->getMessage(),
                 ]);
             }
         }

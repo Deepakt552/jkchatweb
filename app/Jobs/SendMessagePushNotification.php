@@ -97,7 +97,6 @@ class SendMessagePushNotification implements ShouldQueue
                         ],
                         'sound' => 'default',
                         'badge' => 1,
-                        'mutable-content' => 1,
                     ],
                 ],
             ]);
