@@ -10,7 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Messaging\ApnsConfig;
@@ -46,21 +46,51 @@ class SendMessagePushNotification implements ShouldQueue
         }
 
         foreach ($recipientIds as $recipientId) {
-            // Get unique FCM tokens for this user (multi-device)
-            $tokens = DeviceToken::where('user_id', $recipientId)->pluck('fcm_token')->unique();
+            // Get device tokens for this user (multi-device)
+            $deviceTokens = DeviceToken::where('user_id', $recipientId)->get();
 
-            if ($tokens->isEmpty()) {
+            if ($deviceTokens->isEmpty()) {
                 Log::info('SendMessagePushNotification skipped: No FCM tokens found', ['user_id' => $recipientId]);
                 continue;
             }
 
-            foreach ($tokens as $token) {
-                $this->sendToDevice($messaging, $token, 'device', $recipientId);
+            // Calculate actual unread message count for this recipient
+            $unreadCount = Message::where('conversation_id', $this->conversationId)
+                ->whereDoesntHave('reads', function ($q) use ($recipientId) {
+                    $q->where('user_id', $recipientId)->whereNotNull('read_at');
+                })
+                ->count();
+
+            // Also count unread across ALL conversations for badge total
+            $totalUnread = DB::table('messages')
+                ->join('conversation_members', function ($join) use ($recipientId) {
+                    $join->on('messages.conversation_id', '=', 'conversation_members.conversation_id')
+                         ->where('conversation_members.user_id', '=', $recipientId);
+                })
+                ->where('messages.sender_id', '!=', $recipientId)
+                ->where('messages.is_deleted', 0)
+                ->whereNotExists(function ($q) use ($recipientId) {
+                    $q->select(DB::raw(1))
+                      ->from('message_reads')
+                      ->whereColumn('message_reads.message_id', 'messages.id')
+                      ->where('message_reads.user_id', $recipientId)
+                      ->whereNotNull('message_reads.read_at');
+                })
+                ->count();
+
+            $badgeCount = max(1, $totalUnread);
+
+            // Send to each unique token
+            $seenTokens = [];
+            foreach ($deviceTokens as $deviceToken) {
+                if (in_array($deviceToken->fcm_token, $seenTokens)) continue;
+                $seenTokens[] = $deviceToken->fcm_token;
+                $this->sendToDevice($messaging, $deviceToken->fcm_token, $deviceToken->device_id, $recipientId, $badgeCount);
             }
         }
     }
 
-    private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId): void
+    private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId, int $badgeCount = 1): void
     {
         $notificationBody = 'New message';
         if ($this->type === 'image') {
@@ -98,7 +128,7 @@ class SendMessagePushNotification implements ShouldQueue
                             'body'  => $notificationBody,
                         ],
                         'sound' => 'default',
-                        'badge' => 1,
+                        'badge' => $badgeCount,
                     ],
                 ],
             ]));
