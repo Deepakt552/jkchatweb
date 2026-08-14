@@ -54,31 +54,28 @@ class SendMessagePushNotification implements ShouldQueue
                 continue;
             }
 
-            // Calculate actual unread message count for this recipient
-            $unreadCount = Message::where('conversation_id', $this->conversationId)
-                ->whereDoesntHave('reads', function ($q) use ($recipientId) {
-                    $q->where('user_id', $recipientId)->whereNotNull('read_at');
-                })
-                ->count();
+            // Count total unread messages across ALL conversations for badge
+            try {
+                $totalUnread = DB::table('messages')
+                    ->join('conversation_members', function ($join) use ($recipientId) {
+                        $join->on('messages.conversation_id', '=', 'conversation_members.conversation_id')
+                             ->where('conversation_members.user_id', '=', $recipientId);
+                    })
+                    ->where('messages.sender_id', '!=', $recipientId)
+                    ->whereNotExists(function ($q) use ($recipientId) {
+                        $q->select(DB::raw(1))
+                          ->from('message_reads')
+                          ->whereColumn('message_reads.message_id', 'messages.id')
+                          ->where('message_reads.user_id', $recipientId)
+                          ->whereNotNull('message_reads.read_at');
+                    })
+                    ->count();
+            } catch (\Throwable $e) {
+                Log::warning('Badge count query failed, using fallback', ['error' => $e->getMessage()]);
+                $totalUnread = 1;
+            }
 
-            // Also count unread across ALL conversations for badge total
-            $totalUnread = DB::table('messages')
-                ->join('conversation_members', function ($join) use ($recipientId) {
-                    $join->on('messages.conversation_id', '=', 'conversation_members.conversation_id')
-                         ->where('conversation_members.user_id', '=', $recipientId);
-                })
-                ->where('messages.sender_id', '!=', $recipientId)
-                ->where('messages.is_deleted', 0)
-                ->whereNotExists(function ($q) use ($recipientId) {
-                    $q->select(DB::raw(1))
-                      ->from('message_reads')
-                      ->whereColumn('message_reads.message_id', 'messages.id')
-                      ->where('message_reads.user_id', $recipientId)
-                      ->whereNotNull('message_reads.read_at');
-                })
-                ->count();
-
-            $badgeCount = max(1, $totalUnread);
+            $badgeCount = max(1, (int) $totalUnread);
 
             // Send to each unique token
             $seenTokens = [];
@@ -117,9 +114,10 @@ class SendMessagePushNotification implements ShouldQueue
             ])
             ->withApnsConfig(ApnsConfig::fromArray([
                 'headers' => [
-                    'apns-priority'  => '10',
-                    'apns-push-type' => 'alert',
-                    'apns-topic'     => 'com.nbs.jkchat',
+                    'apns-priority'       => '10',
+                    'apns-push-type'      => 'alert',
+                    'apns-topic'          => 'com.nbs.jkchat',
+                    'apns-expiration'     => (string)(time() + 86400),
                 ],
                 'payload' => [
                     'aps' => [
@@ -127,31 +125,44 @@ class SendMessagePushNotification implements ShouldQueue
                             'title' => $this->senderName,
                             'body'  => $notificationBody,
                         ],
-                        'sound' => 'default',
-                        'badge' => $badgeCount,
+                        'sound'            => 'default',
+                        'badge'            => $badgeCount,
+                        'content-available' => 1,
+                        'mutable-content'   => 1,
                     ],
                 ],
             ]));
 
         try {
-            $messaging->send($message);
-            Log::info('FCM notification sent', [
-                'user_id'  => $recipientId,
-                'device_id' => $deviceId,
+            $result = $messaging->send($message);
+            Log::info('FCM notification sent successfully', [
+                'user_id'         => $recipientId,
+                'device_id'       => $deviceId,
                 'conversation_id' => $this->conversationId,
-                'message_id' => $this->messageId,
+                'message_id'      => $this->messageId,
+                'fcm_message_id'  => is_string($result) ? $result : json_encode($result),
+                'badge'           => $badgeCount,
             ]);
         } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
             // Token is no longer registered — prune it
             DeviceToken::where('device_id', $deviceId)->delete();
-            Log::info('FCM token pruned (UNREGISTERED)', ['device_id' => $deviceId]);
+            Log::warning('FCM token pruned (UNREGISTERED/NOT_FOUND) — token deleted', [
+                'device_id' => $deviceId,
+                'error'     => $e->getMessage(),
+            ]);
         } catch (\Kreait\Firebase\Exception\Messaging\InvalidArgument $e) {
             DeviceToken::where('device_id', $deviceId)->delete();
-            Log::warning('FCM token pruned (invalid)', ['device_id' => $deviceId, 'error' => $e->getMessage()]);
-        } catch (\Throwable $e) {
-            Log::error('FCM send failed', [
+            Log::warning('FCM token pruned (INVALID_ARGUMENT) — token deleted', [
                 'device_id' => $deviceId,
-                'error' => $e->getMessage(),
+                'error'     => $e->getMessage(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('FCM send FAILED — check Firebase/APNs config', [
+                'device_id'       => $deviceId,
+                'user_id'         => $recipientId,
+                'conversation_id' => $this->conversationId,
+                'error_class'     => get_class($e),
+                'error'           => $e->getMessage(),
             ]);
         }
     }

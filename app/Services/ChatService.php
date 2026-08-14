@@ -104,7 +104,7 @@ class ChatService
             $message->body ?? 'New message',
             $message->type ?? 'text',
             $message->iv,
-        )->onQueue('default');
+        );
 
         return $message;
     }
