@@ -1954,9 +1954,9 @@ export default function Dashboard() {
                     {/* Header: App Brand Logo / Contacts / Settings / Create Chat */}
                     <div className="flex items-center justify-between px-6 py-4 border-b dark:border-white/5 border-neutral-200 transition-colors duration-300">
                         <div className="flex items-center gap-3">
-                            <img src="/jklogo.png" alt="JK Logo" className="h-9 object-contain" />
+                            <img src="/launcher.png" alt="DiaChat Logo" className="h-9 object-contain" />
                             <span className="font-bold tracking-tight dark:text-white text-neutral-800 text-sm transition-colors duration-300">
-                                JK<span className="text-[#2788E8]">Chat</span>
+                                Dia<span className="text-[#2788E8]">Chat</span>
                             </span>
                         </div>
 
@@ -2222,11 +2222,11 @@ export default function Dashboard() {
                                     </div>
                                 </div>
 
-                                <img src="/jklogo.png" alt="JK Logo" className="h-10 object-contain mb-3 filter drop-shadow-[0_0_8px_rgba(200,139,55,0.2)]" />
+                                <img src="/launcher.png" alt="DiaChat Logo" className="h-10 object-contain mb-3 filter drop-shadow-[0_0_8px_rgba(39,136,232,0.2)]" />
 
                                 <h3 className="text-xl font-bold mb-3 tracking-tight">
-                                    <span className="bg-gradient-to-r from-[#2788E8] via-[#f3cb8c] to-[#ae7428] bg-clip-text text-transparent">
-                                        JK Chat
+                                    <span className="bg-gradient-to-r from-[#2788E8] via-[#32C2A3] to-[#20324A] bg-clip-text text-transparent">
+                                        DiaChat
                                     </span>
                                 </h3>
 
@@ -3586,7 +3586,7 @@ export default function Dashboard() {
                                                                 {option === 'contacts' ? 'My Contacts Only' : option}
                                                             </span>
                                                             <p className="text-[11px] dark:text-neutral-500 text-neutral-400">
-                                                                {option === 'everyone' && 'Anyone on JK Chat can see your last seen'}
+                                                                {option === 'everyone' && 'Anyone on DiaChat can see your last seen'}
                                                                 {option === 'contacts' && 'Only friends you have added'}
                                                                 {option === 'nobody' && 'No one can see when you were last active'}
                                                             </p>
@@ -3717,7 +3717,7 @@ export default function Dashboard() {
                                             className="h-11 w-full bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-500 font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
                                         >
                                             <LogOut className="h-4 w-4" />
-                                            Sign Out of JK Chat
+                                            Sign Out of DiaChat
                                         </button>
                                     </div>
                                 )}
