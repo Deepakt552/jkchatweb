@@ -24,3 +24,6 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 jkchat-552-firebase-adminsdk-fbsvc-59ad5b3e82.json
+*firebase-adminsdk*.json
+*-firebase-adminsdk-*.json
+firebase-credentials.json

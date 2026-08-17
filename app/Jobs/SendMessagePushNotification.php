@@ -116,7 +116,7 @@ class SendMessagePushNotification implements ShouldQueue
                 'headers' => [
                     'apns-priority'       => '10',
                     'apns-push-type'      => 'alert',
-                    'apns-topic'          => 'com.nbs.jkchat',
+                    'apns-topic'          => 'com.nbs.diachat',
                     'apns-expiration'     => (string)(time() + 86400),
                 ],
                 'payload' => [

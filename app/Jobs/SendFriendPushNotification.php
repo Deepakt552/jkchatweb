@@ -64,7 +64,7 @@ class SendFriendPushNotification implements ShouldQueue
                     'headers' => [
                         'apns-priority'  => '10',
                         'apns-push-type' => 'alert',
-                        'apns-topic'     => 'com.nbs.jkchat',
+                        'apns-topic'     => 'com.nbs.diachat',
                     ],
                     'payload' => [
                         'aps' => [
