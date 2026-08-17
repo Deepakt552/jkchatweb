@@ -58,18 +58,73 @@ class ApiAuthController extends Controller
             ]);
         }
 
-        // Generate OTP
-        $otp = sprintf("%06d", mt_rand(100000, 999999));
-        $user->otp_code = $otp;
-        $user->otp_expires_at = now()->addMinutes(5);
-        $user->save();
+        // Check if device or IP is already recorded & verified for this user
+        $knownDevice = Device::where('user_id', $user->id)
+            ->where('device_identifier', $request->device_id)
+            ->where('is_verified', true)
+            ->first();
 
-        // Send OTP Mail
-        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+        $knownIp = \DB::table('login_history')
+            ->where('user_id', $user->id)
+            ->where('ip_address', $ip)
+            ->where('status', 'success')
+            ->exists();
+
+        $isKnown = ($knownDevice !== null) || $knownIp;
+
+        if (!$isKnown) {
+            // First time login from new device or new IP address: Require OTP email verification
+            $otp = sprintf("%06d", mt_rand(100000, 999999));
+            $user->otp_code = $otp;
+            $user->otp_expires_at = now()->addMinutes(5);
+            $user->save();
+
+            // Send OTP Mail
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+
+            return response()->json([
+                'otp_required' => true,
+                'email' => $user->email,
+                'message' => 'New device or IP detected. An OTP verification code has been sent to your email.',
+            ]);
+        }
+
+        // Known device/IP - direct login without OTP
+        Device::where('device_identifier', $request->device_id)
+            ->where('user_id', '!=', $user->id)
+            ->delete();
+
+        Device::updateOrCreate(
+            ['user_id' => $user->id, 'device_identifier' => $request->device_id],
+            [
+                'name' => $request->device_name,
+                'os' => $request->os,
+                'token' => $request->push_token,
+                'is_verified' => true,
+                'last_active_at' => now(),
+            ]
+        );
+
+        $this->userService->logLoginAttempt($request->login, $ip, $ua, 'success');
+        $this->userService->logActivity($user->id, "User logged in directly on {$request->device_name} ({$request->os}) from known device/IP");
+
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
-            'otp_required' => true,
-            'email' => $user->email,
+            'otp_required' => false,
+            'token' => $token,
+            'force_password_change' => (bool)$user->force_password_change,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'role' => $user->role,
+                'avatar_url' => $user->avatar_url,
+                'about' => $user->about,
+                'privacy_settings' => $user->privacy_settings,
+                'force_password_change' => (bool)$user->force_password_change,
+            ],
         ]);
     }
 

@@ -33,6 +33,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+        if ($user) {
+            $ip = $request->ip() ?? '127.0.0.1';
+            $ua = $request->userAgent() ?? 'Web Browser';
+            app(\App\Services\UserService::class)->logLoginAttempt($user->email, $ip, $ua, 'success');
+            app(\App\Services\UserService::class)->logActivity($user->id, "Web browser login from {$ip}");
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

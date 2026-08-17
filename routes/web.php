@@ -68,6 +68,9 @@ Route::middleware(['auth'])->prefix('web')->group(function () {
     Route::post('/friends/reject', [\App\Http\Controllers\Api\ApiFriendController::class, 'reject']);
     Route::post('/friends/search', [\App\Http\Controllers\Api\ApiFriendController::class, 'search']);
     Route::get('/friends/profile/{userId}', [\App\Http\Controllers\Api\ApiFriendController::class, 'getContactProfile']);
+    Route::post('/friends/block', [\App\Http\Controllers\Api\ApiFriendController::class, 'block']);
+    Route::post('/friends/unblock', [\App\Http\Controllers\Api\ApiFriendController::class, 'unblock']);
+    Route::get('/friends/blocked', [\App\Http\Controllers\Api\ApiFriendController::class, 'blocked']);
 
     // Conversations & Messaging
     Route::get('/conversations', [\App\Http\Controllers\Api\ApiChatController::class, 'conversations']);

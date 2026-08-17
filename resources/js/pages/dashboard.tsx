@@ -1369,6 +1369,51 @@ export default function Dashboard() {
         }
     };
 
+    // Block user
+    const handleBlockUser = async (targetUserId: number) => {
+        if (!confirm('Are you sure you want to block this contact? They will not be able to message you.')) return;
+        try {
+            const response = await fetch('/web/friends/block', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                },
+                body: JSON.stringify({ blocked_id: targetUserId })
+            });
+            if (response.ok) {
+                fetchFriends();
+                fetchConversations();
+                alert('User has been blocked.');
+            }
+        } catch (err) {
+            console.error('Error blocking user:', err);
+        }
+    };
+
+    // Unblock user
+    const handleUnblockUser = async (targetUserId: number) => {
+        try {
+            const response = await fetch('/web/friends/unblock', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                },
+                body: JSON.stringify({ blocked_id: targetUserId })
+            });
+            if (response.ok) {
+                fetchFriends();
+                fetchConversations();
+                alert('User has been unblocked.');
+            }
+        } catch (err) {
+            console.error('Error unblocking user:', err);
+        }
+    };
+
     // Send typing status to backend
     const sendTypingIndicator = async (typing: boolean) => {
         if (!activeConversationId) return;
@@ -2276,7 +2321,7 @@ export default function Dashboard() {
                             <div className="flex flex-1 flex-col h-full overflow-hidden min-w-0">
 
                                 {/* Chat View Header: Floating Liquid Glass Banner */}
-                                <div className={`flex items-center justify-between px-6 py-3 border-b relative z-10 transition-all duration-300 ${isDark ? 'border-white/5 bg-[#0F0F0F]' : 'border-neutral-200 bg-white'
+                                <div className={`flex items-center justify-between px-6 py-3 border-b relative z-30 transition-all duration-300 ${isDark ? 'border-white/5 bg-[#0F0F0F]' : 'border-neutral-200 bg-white'
                                     }`}>
                                     <div className="flex items-center gap-3">
                                         {/* Mobile Back Navigation Arrow */}
@@ -2345,7 +2390,7 @@ export default function Dashboard() {
                                             <Search className="h-4 w-4" />
                                         </button>
 
-                                        <div className="relative">
+                                        <div className="relative z-50">
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -2358,15 +2403,15 @@ export default function Dashboard() {
                                             </button>
 
                                             {showThreeDotMenu && (
-                                                <div className="absolute right-0 mt-2 w-48 rounded-xl border dark:border-white/5 border-neutral-200 dark:bg-[#121212]/95 bg-white shadow-xl z-50 py-1.5 backdrop-blur-md">
+                                                <div className="absolute right-0 mt-2 w-52 rounded-xl border dark:border-white/10 border-neutral-200 dark:bg-[#161616]/98 bg-white shadow-2xl z-50 py-1.5 backdrop-blur-xl">
                                                     <button
                                                         onClick={() => {
                                                             setShowContactSidebar(prev => !prev);
                                                             setShowThreeDotMenu(false);
                                                         }}
-                                                        className="w-full text-left px-4 py-2 text-xs dark:text-neutral-300 text-neutral-700 dark:hover:bg-white/5 hover:bg-neutral-100 flex items-center gap-2"
+                                                        className="w-full text-left px-4 py-2.5 text-xs dark:text-neutral-200 text-neutral-700 dark:hover:bg-white/5 hover:bg-neutral-100 flex items-center gap-2.5 transition-colors cursor-pointer"
                                                     >
-                                                        <Info className="h-3.5 w-3.5 text-[#2788E8]" />
+                                                        <Info className="h-4 w-4 text-[#2788E8]" />
                                                         View Contact Info
                                                     </button>
                                                     <button
@@ -2374,11 +2419,27 @@ export default function Dashboard() {
                                                             setShowMessageSearch(prev => !prev);
                                                             setShowThreeDotMenu(false);
                                                         }}
-                                                        className="w-full text-left px-4 py-2 text-xs dark:text-neutral-300 text-neutral-700 dark:hover:bg-white/5 hover:bg-neutral-100 flex items-center gap-2"
+                                                        className="w-full text-left px-4 py-2.5 text-xs dark:text-neutral-200 text-neutral-700 dark:hover:bg-white/5 hover:bg-neutral-100 flex items-center gap-2.5 transition-colors cursor-pointer"
                                                     >
-                                                        <Search className="h-3.5 w-3.5 text-[#2788E8]" />
+                                                        <Search className="h-4 w-4 text-[#2788E8]" />
                                                         Search Messages
                                                     </button>
+                                                    {activeConversation.type === 'direct' && (() => {
+                                                        const partner = activeConversation.members?.find((m: any) => m.id !== currentUser?.id);
+                                                        if (!partner) return null;
+                                                        return (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setShowThreeDotMenu(false);
+                                                                    handleBlockUser(partner.id);
+                                                                }}
+                                                                className="w-full text-left px-4 py-2.5 text-xs text-orange-500 dark:hover:bg-orange-500/10 hover:bg-orange-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                                            >
+                                                                <ShieldAlert className="h-4 w-4 text-orange-500" />
+                                                                Block User
+                                                            </button>
+                                                        );
+                                                    })()}
                                                     <div className="border-t dark:border-white/5 border-neutral-100 my-1" />
                                                     <button
                                                         onClick={async () => {
@@ -2402,9 +2463,9 @@ export default function Dashboard() {
                                                             }
                                                             setShowThreeDotMenu(false);
                                                         }}
-                                                        className="w-full text-left px-4 py-2 text-xs text-red-500 dark:hover:bg-red-500/10 hover:bg-red-50 flex items-center gap-2"
+                                                        className="w-full text-left px-4 py-2.5 text-xs text-red-500 dark:hover:bg-red-500/10 hover:bg-red-50 flex items-center gap-2.5 transition-colors cursor-pointer"
                                                     >
-                                                        <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                                                        <Trash2 className="h-4 w-4 text-red-500" />
                                                         Clear Chat History
                                                     </button>
                                                 </div>
