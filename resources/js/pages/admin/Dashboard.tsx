@@ -474,7 +474,7 @@ export default function Dashboard({ stats, system, logins, activities, activeUse
                 </section>                {/* Footer panel */}
                 <footer className="h-16 border-t border-slate-200/60 dark:border-white/5 bg-white/40 dark:bg-[#0F0F0F]/30 flex items-center justify-between text-[11px] font-semibold text-slate-400">
                     <div className="flex items-center gap-2">
-                        <span>JKChat Enterprise Admin Portal</span>
+                        <span>DiaChat Enterprise Admin Portal</span>
                         <span>•</span>
                         <span>v1.2.0</span>
                     </div>

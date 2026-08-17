@@ -20,11 +20,11 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     prefetch
                                     className={
                                         isActive
-                                            ? '!bg-gradient-to-r !from-[#C88B37] !to-[#AA7122] !text-white font-bold shadow-md shadow-[#C88B37]/20 flex items-center gap-3'
-                                            : 'flex items-center gap-3 text-neutral-600 hover:bg-[#C88B37]/10 hover:text-[#C88B37] dark:text-neutral-300 dark:hover:bg-[#C88B37]/20 dark:hover:text-amber-400 font-medium'
+                                            ? '!bg-gradient-to-r !from-[#2788E8] !to-[#32C2A3] !text-white font-bold shadow-md shadow-[#2788E8]/20 flex items-center gap-3'
+                                            : 'flex items-center gap-3 text-[#64748B] hover:bg-[#EAF4FF] hover:text-[#2788E8] dark:text-neutral-300 dark:hover:bg-[#1E293B] dark:hover:text-[#32C2A3] font-medium'
                                     }
                                 >
-                                    {item.icon && <item.icon className={isActive ? '!text-white h-4 w-4 shrink-0' : 'h-4 w-4 shrink-0 text-neutral-500 group-hover:text-[#C88B37]'} />}
+                                    {item.icon && <item.icon className={isActive ? '!text-white h-4 w-4 shrink-0' : 'h-4 w-4 shrink-0 text-[#94A3B8] group-hover:text-[#2788E8]'} />}
                                     <span className={isActive ? '!text-white text-sm tracking-tight' : 'text-sm tracking-tight'}>{item.title}</span>
                                 </Link>
                             </SidebarMenuButton>

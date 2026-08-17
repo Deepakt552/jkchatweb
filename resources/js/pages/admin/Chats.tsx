@@ -335,12 +335,12 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
 
                 {/* Metric Stats Overview Cards */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div className="rounded-2xl border border-[#C88B37]/20 bg-gradient-to-br from-amber-500/10 via-white to-white p-4 shadow-sm dark:bg-gradient-to-br dark:from-[#C88B37]/15 dark:to-[#0F0F0F]">
+                    <div className="rounded-2xl border border-[#2788E8]/20 bg-gradient-to-br from-amber-500/10 via-white to-white p-4 shadow-sm dark:bg-gradient-to-br dark:from-[#2788E8]/15 dark:to-[#0F0F0F]">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
                                 Active Chats
                             </span>
-                            <MessageSquare className="h-5 w-5 text-[#C88B37]" />
+                            <MessageSquare className="h-5 w-5 text-[#2788E8]" />
                         </div>
                         <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
                             {stats.active}
@@ -376,8 +376,8 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                 </div>
 
                 {privacyMode && (
-                    <div className="flex items-center gap-3 rounded-xl border border-[#C88B37]/20 bg-[#C88B37]/5 p-4 text-sm text-[#C88B37] dark:border-[#C88B37]/10 dark:bg-[#C88B37]/5 backdrop-blur-md">
-                        <Shield className="h-5 w-5 shrink-0 text-[#C88B37]" />
+                    <div className="flex items-center gap-3 rounded-xl border border-[#2788E8]/20 bg-[#2788E8]/5 p-4 text-sm text-[#2788E8] dark:border-[#2788E8]/10 dark:bg-[#2788E8]/5 backdrop-blur-md">
+                        <Shield className="h-5 w-5 shrink-0 text-[#2788E8]" />
                         <div>
                             <span className="font-semibold">Privacy Mode Enabled:</span> Message bodies
                             are end-to-end encrypted. Soft-delete keeps ciphertext so chats can be restored
@@ -398,8 +398,8 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                                 onClick={() => applyFilters(t.id)}
                                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                                     active
-                                        ? 'bg-[#C88B37] text-white shadow-sm'
-                                        : 'border border-neutral-200 bg-white text-neutral-700 hover:border-[#C88B37]/40 dark:border-white/10 dark:bg-[#0F0F0F] dark:text-neutral-200'
+                                        ? 'bg-[#2788E8] text-white shadow-sm'
+                                        : 'border border-neutral-200 bg-white text-neutral-700 hover:border-[#2788E8]/40 dark:border-white/10 dark:bg-[#0F0F0F] dark:text-neutral-200'
                                 }`}
                             >
                                 <Icon className="h-4 w-4" />
@@ -461,7 +461,7 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                             <button
                                 type="button"
                                 onClick={() => applyFilters()}
-                                className="rounded-lg bg-[#C88B37] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b57a2f]"
+                                className="rounded-lg bg-[#2788E8] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b57a2f]"
                             >
                                 Apply
                             </button>
@@ -588,7 +588,7 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                                                 <td className="space-x-1 px-6 py-4 text-right">
                                                     <button
                                                         onClick={() => handleViewMessages(conv)}
-                                                        className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:border-[#C88B37]/45 hover:bg-neutral-50 dark:border-white/5 dark:bg-[#C88B37]/10 dark:text-[#C88B37]"
+                                                        className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:border-[#2788E8]/45 hover:bg-neutral-50 dark:border-white/5 dark:bg-[#2788E8]/10 dark:text-[#2788E8]"
                                                     >
                                                         <Eye className="h-3.5 w-3.5" />
                                                         Inspect
@@ -629,7 +629,7 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                                         onClick={() => link.url && router.get(link.url)}
                                         className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
                                             link.active
-                                                ? 'bg-[#C88B37] text-white'
+                                                ? 'bg-[#2788E8] text-white'
                                                 : 'border border-neutral-200 bg-white text-neutral-600 dark:border-white/10 dark:bg-[#0F0F0F]'
                                         } disabled:opacity-40`}
                                         dangerouslySetInnerHTML={{ __html: link.label }}
@@ -642,20 +642,20 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
                     {/* Right: inspector + restore panel */}
                     <div className="flex min-h-[400px] flex-col rounded-2xl border border-slate-200/60 bg-white/70 p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-[#0F0F0F]/65">
                         <h2 className="mb-4 flex items-center gap-2 border-b border-neutral-100 pb-3 text-lg font-semibold tracking-tight dark:border-white/5">
-                            <MessageSquare className="h-5 w-5 text-[#C88B37]" />
+                            <MessageSquare className="h-5 w-5 text-[#2788E8]" />
                             Inspect & Restore
                         </h2>
 
                         {!selectedConv ? (
                             <div className="flex flex-1 flex-col items-center justify-center p-6 text-center text-neutral-400">
-                                <Shield className="mb-2 h-8 w-8 animate-pulse text-[#C88B37] opacity-50" />
+                                <Shield className="mb-2 h-8 w-8 animate-pulse text-[#2788E8] opacity-50" />
                                 <p className="text-sm">
                                     Select a conversation to inspect messages or restore soft-deleted history.
                                 </p>
                             </div>
                         ) : isLoadingMessages ? (
                             <div className="flex flex-1 items-center justify-center">
-                                <Loader2 className="h-6 w-6 animate-spin text-[#C88B37]" />
+                                <Loader2 className="h-6 w-6 animate-spin text-[#2788E8]" />
                             </div>
                         ) : (
                             <div className="flex flex-1 flex-col justify-between gap-4">

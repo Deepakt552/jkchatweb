@@ -202,7 +202,7 @@ const DecryptedAttachment = ({ attach, conversationId }: DecryptedAttachmentProp
     if (loading) {
         return (
             <div className="flex items-center justify-center p-6 dark:bg-white/[0.02] bg-neutral-100 rounded-xl h-40 w-full animate-pulse border dark:border-white/5 border-neutral-200">
-                <LoaderCircle className="h-6 w-6 animate-spin text-[#C88B37]" />
+                <LoaderCircle className="h-6 w-6 animate-spin text-[#2788E8]" />
             </div>
         );
     }
@@ -273,7 +273,7 @@ const DecryptedAttachment = ({ attach, conversationId }: DecryptedAttachmentProp
             download={attach.file_name}
             className="flex items-center gap-3 dark:bg-black/35 bg-neutral-200/50 border dark:border-white/5 border-neutral-200 dark:hover:bg-black/55 hover:bg-neutral-200 p-3 rounded-xl transition-all cursor-pointer text-xs"
         >
-            <FileText className="h-5 w-5 text-[#C88B37] shrink-0" />
+            <FileText className="h-5 w-5 text-[#2788E8] shrink-0" />
             <div className="flex-1 min-w-0 pr-2">
                 <span className="font-semibold block truncate dark:text-white text-neutral-900">{attach.file_name}</span>
                 <span className="text-[10px] text-neutral-500 block mt-0.5">{(attach.file_size / 1024).toFixed(1)} KB</span>
@@ -1939,7 +1939,7 @@ export default function Dashboard() {
     const isSomeoneTyping = Object.values(typingUsers).some(status => status === true);
 
     return (
-        <div className={`relative flex h-screen w-screen overflow-hidden font-sans selection:bg-[#C88B37]/30 selection:text-white transition-colors duration-300 ${isDark ? 'bg-[#0A0A0A] text-white' : 'bg-neutral-50 text-neutral-800'
+        <div className={`relative flex h-screen w-screen overflow-hidden font-sans selection:bg-[#2788E8]/30 selection:text-white transition-colors duration-300 ${isDark ? 'bg-[#0A0A0A] text-white' : 'bg-neutral-50 text-neutral-800'
             }`}>
             <Head title="Chat Workspace" />
 
@@ -1956,7 +1956,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-3">
                             <img src="/jklogo.png" alt="JK Logo" className="h-9 object-contain" />
                             <span className="font-bold tracking-tight dark:text-white text-neutral-800 text-sm transition-colors duration-300">
-                                JK<span className="text-[#C88B37]">Chat</span>
+                                JK<span className="text-[#2788E8]">Chat</span>
                             </span>
                         </div>
 
@@ -1968,7 +1968,7 @@ export default function Dashboard() {
                                     fetchSentRequests();
                                     setShowFriendsModal(true);
                                 }}
-                                className="relative flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#C88B37] hover:bg-[#C88B37]/15 hover:border-[#C88B37]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
+                                className="relative flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#2788E8] hover:bg-[#2788E8]/15 hover:border-[#2788E8]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
                                 title="Manage Contacts & Invites"
                             >
                                 <UserPlus className="h-4.5 w-4.5" />
@@ -1987,7 +1987,7 @@ export default function Dashboard() {
                                     setEditLastSeen(currentUser?.privacy_settings?.last_seen_visibility || 'everyone');
                                     setShowSettingsModal(true);
                                 }}
-                                className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#C88B37] hover:bg-[#C88B37]/15 hover:border-[#C88B37]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
+                                className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#2788E8] hover:bg-[#2788E8]/15 hover:border-[#2788E8]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
                                 title="Profile Settings"
                             >
                                 <Settings className="h-4.5 w-4.5" />
@@ -1996,7 +1996,7 @@ export default function Dashboard() {
                             {/* Create Chat Button */}
                             <button
                                 onClick={() => setShowNewChatModal(true)}
-                                className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#C88B37] hover:bg-[#C88B37]/15 hover:border-[#C88B37]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
+                                className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#2788E8] hover:bg-[#2788E8]/15 hover:border-[#2788E8]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
                                 title="New Conversation"
                             >
                                 <Plus className="h-5 w-5" />
@@ -2006,7 +2006,7 @@ export default function Dashboard() {
 
                     {/* Glass Search Input */}
                     <div className="px-5 py-3">
-                        <div className="relative flex h-10 w-full items-center rounded-full border dark:border-white/8 border-neutral-200/80 dark:bg-white/[0.02] bg-neutral-50/50 px-4 focus-within:border-[#C88B37]/60 focus-within:ring-1 focus-within:ring-[#C88B37]/60 focus-within:shadow-[0_0_12px_rgba(200,139,55,0.12)] transition-all duration-300">
+                        <div className="relative flex h-10 w-full items-center rounded-full border dark:border-white/8 border-neutral-200/80 dark:bg-white/[0.02] bg-neutral-50/50 px-4 focus-within:border-[#2788E8]/60 focus-within:ring-1 focus-within:ring-[#2788E8]/60 focus-within:shadow-[0_0_12px_rgba(200,139,55,0.12)] transition-all duration-300">
                             <Search className="h-3.5 w-3.5 text-neutral-400 mr-2 shrink-0" />
                             <input
                                 type="text"
@@ -2024,7 +2024,7 @@ export default function Dashboard() {
                         <button
                             onClick={() => setActiveTab('all')}
                             className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'all'
-                                    ? 'bg-[#C88B37] text-white font-bold'
+                                    ? 'bg-[#2788E8] text-white font-bold'
                                     : 'dark:bg-white/5 bg-neutral-100 dark:text-white/60 text-neutral-600 border dark:border-white/5 border-neutral-200'
                                 }`}
                         >
@@ -2035,7 +2035,7 @@ export default function Dashboard() {
                         <button
                             onClick={() => setActiveTab('unread')}
                             className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'unread'
-                                    ? 'bg-[#C88B37] text-white font-bold'
+                                    ? 'bg-[#2788E8] text-white font-bold'
                                     : 'dark:bg-white/5 bg-neutral-100 dark:text-white/60 text-neutral-600 border dark:border-white/5 border-neutral-200'
                                 }`}
                         >
@@ -2048,7 +2048,7 @@ export default function Dashboard() {
                                 <button
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`pl-3 pr-7 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${activeTab === tab.id
-                                            ? 'bg-[#C88B37] text-white font-bold'
+                                            ? 'bg-[#2788E8] text-white font-bold'
                                             : 'dark:bg-white/5 bg-neutral-100 dark:text-white/60 text-neutral-600 border dark:border-white/5 border-neutral-200'
                                         }`}
                                 >
@@ -2079,7 +2079,7 @@ export default function Dashboard() {
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
                         {sortedConversations.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center text-neutral-500">
-                                <MessageSquare className="h-8 w-8 mb-2 text-[#C88B37]/45" />
+                                <MessageSquare className="h-8 w-8 mb-2 text-[#2788E8]/45" />
                                 <span className="text-xs">No conversations found</span>
                             </div>
                         ) : (
@@ -2103,13 +2103,13 @@ export default function Dashboard() {
                                             });
                                         }}
                                         className={`group flex items-center gap-3.5 p-3 rounded-2xl cursor-pointer transition-all border animate-chat-entry ${isSelected
-                                                ? 'bg-[#C88B37]/10 border-[#C88B37]/35 shadow-[0_4px_12px_rgba(200,139,55,0.05)] text-white'
+                                                ? 'bg-[#2788E8]/10 border-[#2788E8]/35 shadow-[0_4px_12px_rgba(200,139,55,0.05)] text-white'
                                                 : 'bg-transparent border-transparent dark:hover:bg-white/[0.02] hover:bg-neutral-50 dark:hover:border-white/5 hover:border-neutral-200'
                                             }`}
                                     >
                                         {/* Avatar Ring */}
                                         <div className="relative">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#C88B37]/40 bg-[#C88B37]/10 text-[#C88B37] font-bold text-base shadow-[0_0_8px_rgba(200,139,55,0.1)] overflow-hidden">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#2788E8]/40 bg-[#2788E8]/10 text-[#2788E8] font-bold text-base shadow-[0_0_8px_rgba(200,139,55,0.1)] overflow-hidden">
                                                 {getChatAvatarThumbUrl(conv) ? (
                                                     <img src={getChatAvatarThumbUrl(conv)} alt={chatName} className="h-full w-full object-cover" />
                                                 ) : conv.type === 'group' ? (
@@ -2129,7 +2129,7 @@ export default function Dashboard() {
                                                 <span className="font-semibold dark:text-white text-neutral-900 text-sm truncate">{chatName}</span>
                                                 <div className="flex items-center gap-1">
                                                     {pinnedIds.includes(conv.id) && (
-                                                        <Pin className="h-3 w-3 text-[#C88B37] rotate-45 shrink-0" />
+                                                        <Pin className="h-3 w-3 text-[#2788E8] rotate-45 shrink-0" />
                                                     )}
                                                     {lastMessage && (
                                                         <span className="text-[10px] text-neutral-500 whitespace-nowrap">
@@ -2145,12 +2145,12 @@ export default function Dashboard() {
                                                             <span className="truncate">🚫 This message was deleted</span>
                                                         ) : lastMessage.type === 'image' ? (
                                                             <>
-                                                                <ImageIcon className="h-3.5 w-3.5 shrink-0 text-[#C88B37]/80" />
+                                                                <ImageIcon className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />
                                                                 <span className="truncate">Photo</span>
                                                             </>
                                                         ) : lastMessage.type === 'document' ? (
                                                             <>
-                                                                <FileText className="h-3.5 w-3.5 shrink-0 text-[#C88B37]/80" />
+                                                                <FileText className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />
                                                                 <span className="truncate">Document</span>
                                                             </>
                                                         ) : (
@@ -2170,10 +2170,10 @@ export default function Dashboard() {
                                                         className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-neutral-200 dark:hover:bg-white/10 rounded transition-opacity cursor-pointer shrink-0"
                                                         title={pinnedIds.includes(conv.id) ? "Unpin Chat" : "Pin Chat"}
                                                     >
-                                                        <Pin className={`h-3 w-3 ${pinnedIds.includes(conv.id) ? 'text-[#C88B37] fill-[#C88B37]' : 'text-neutral-400'}`} />
+                                                        <Pin className={`h-3 w-3 ${pinnedIds.includes(conv.id) ? 'text-[#2788E8] fill-[#2788E8]' : 'text-neutral-400'}`} />
                                                     </button>
                                                     {conv.unread_count > 0 && (
-                                                        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#C88B37] px-1 text-[10px] font-bold text-black shadow-[0_0_8px_rgba(200,139,55,0.3)]">
+                                                        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#2788E8] px-1 text-[10px] font-bold text-black shadow-[0_0_8px_rgba(200,139,55,0.3)]">
                                                             {conv.unread_count}
                                                         </span>
                                                     )}
@@ -2197,8 +2197,8 @@ export default function Dashboard() {
                         <div className={`flex flex-1 flex-col items-center justify-center text-center p-6 relative overflow-hidden transition-colors duration-300 ${isDark ? 'bg-[#080808]' : 'bg-neutral-50'
                             }`}>
                             {/* Premium Floating Glow Particles */}
-                            <div className="absolute top-1/4 left-1/4 h-80 w-80 rounded-full bg-[#C88B37]/[0.02] dark:bg-[#C88B37]/[0.03] filter blur-[80px] animate-[pulse_6s_ease-in-out_infinite]" />
-                            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-[#C88B37]/[0.01] dark:bg-[#C88B37]/[0.02] filter blur-[100px] animate-[pulse_8s_ease-in-out_infinite_1s]" />
+                            <div className="absolute top-1/4 left-1/4 h-80 w-80 rounded-full bg-[#2788E8]/[0.02] dark:bg-[#2788E8]/[0.03] filter blur-[80px] animate-[pulse_6s_ease-in-out_infinite]" />
+                            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-[#2788E8]/[0.01] dark:bg-[#2788E8]/[0.02] filter blur-[100px] animate-[pulse_8s_ease-in-out_infinite_1s]" />
 
                             <div className={`rounded-3xl p-10 max-w-md flex flex-col items-center relative z-10 transition-all duration-300 ${isDark
                                     ? 'glass-panel shadow-[0_30px_70px_rgba(0,0,0,0.5),_0_0_50px_rgba(200,139,55,0.02)]'
@@ -2208,24 +2208,24 @@ export default function Dashboard() {
                                 {/* Dual Rotating Rings Outer Layout */}
                                 <div className="relative h-28 w-28 flex items-center justify-center mb-8">
                                     {/* Pulse aura */}
-                                    <div className="absolute inset-0 rounded-full bg-[#C88B37]/10 animate-ping opacity-75" />
+                                    <div className="absolute inset-0 rounded-full bg-[#2788E8]/10 animate-ping opacity-75" />
 
                                     {/* Clockwise Outer Ring */}
-                                    <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#C88B37]/40 animate-[spin_20s_linear_infinite]" />
+                                    <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#2788E8]/40 animate-[spin_20s_linear_infinite]" />
 
                                     {/* Counter-Clockwise Inner Ring */}
-                                    <div className="absolute inset-3 rounded-full border border-dashed border-[#C88B37]/25 animate-[spin_12s_linear_infinite_reverse]" />
+                                    <div className="absolute inset-3 rounded-full border border-dashed border-[#2788E8]/25 animate-[spin_12s_linear_infinite_reverse]" />
 
                                     {/* Solid Core Shield Wrapper */}
-                                    <div className="h-16 w-16 rounded-2xl border border-[#C88B37]/35 bg-[#C88B37]/10 flex items-center justify-center shadow-[0_0_30px_rgba(200,139,55,0.15)] relative z-10">
-                                        <ShieldCheck className="h-8 w-8 text-[#C88B37] animate-[pulse_3s_ease-in-out_infinite]" />
+                                    <div className="h-16 w-16 rounded-2xl border border-[#2788E8]/35 bg-[#2788E8]/10 flex items-center justify-center shadow-[0_0_30px_rgba(200,139,55,0.15)] relative z-10">
+                                        <ShieldCheck className="h-8 w-8 text-[#2788E8] animate-[pulse_3s_ease-in-out_infinite]" />
                                     </div>
                                 </div>
 
                                 <img src="/jklogo.png" alt="JK Logo" className="h-10 object-contain mb-3 filter drop-shadow-[0_0_8px_rgba(200,139,55,0.2)]" />
 
                                 <h3 className="text-xl font-bold mb-3 tracking-tight">
-                                    <span className="bg-gradient-to-r from-[#C88B37] via-[#f3cb8c] to-[#ae7428] bg-clip-text text-transparent">
+                                    <span className="bg-gradient-to-r from-[#2788E8] via-[#f3cb8c] to-[#ae7428] bg-clip-text text-transparent">
                                         JK Chat
                                     </span>
                                 </h3>
@@ -2236,12 +2236,12 @@ export default function Dashboard() {
 
                                 {/* Feature Capabilities Badges Grid */}
                                 <div className="grid grid-cols-2 gap-3 w-full border-t dark:border-white/5 border-neutral-200 pt-6">
-                                    <div className="flex items-center gap-2 p-2.5 rounded-xl dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 hover:border-[#C88B37]/30 transition-all duration-300">
-                                        <ShieldCheck className="h-4 w-4 text-[#C88B37]" />
+                                    <div className="flex items-center gap-2 p-2.5 rounded-xl dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 hover:border-[#2788E8]/30 transition-all duration-300">
+                                        <ShieldCheck className="h-4 w-4 text-[#2788E8]" />
                                         <span className="text-[10px] font-semibold dark:text-neutral-300 text-neutral-700">AES-256 E2EE</span>
                                     </div>
-                                    <div className="flex items-center gap-2 p-2.5 rounded-xl dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 hover:border-[#C88B37]/30 transition-all duration-300">
-                                        <ClockIcon className="h-4 w-4 text-[#C88B37]" />
+                                    <div className="flex items-center gap-2 p-2.5 rounded-xl dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 hover:border-[#2788E8]/30 transition-all duration-300">
+                                        <ClockIcon className="h-4 w-4 text-[#2788E8]" />
                                         <span className="text-[10px] font-semibold dark:text-neutral-300 text-neutral-700">Instant Sync</span>
                                     </div>
                                 </div>
@@ -2259,10 +2259,10 @@ export default function Dashboard() {
                         >
                             {/* Drag & Drop Glass overlay */}
                             {isDragging && (
-                                <div className="absolute inset-0 bg-black/60 backdrop-blur-md z-30 flex flex-col items-center justify-center transition-all duration-300 border-2 border-dashed border-[#C88B37]/60 m-4 rounded-3xl">
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-md z-30 flex flex-col items-center justify-center transition-all duration-300 border-2 border-dashed border-[#2788E8]/60 m-4 rounded-3xl">
                                     <div className="flex flex-col items-center gap-4 text-center animate-pulse">
-                                        <div className="h-16 w-16 rounded-full border border-[#C88B37]/45 bg-[#C88B37]/10 flex items-center justify-center text-[#C88B37] shadow-[0_0_15px_rgba(200,139,55,0.25)]">
-                                            <UploadCloud className="h-8 w-8 text-[#C88B37]" />
+                                        <div className="h-16 w-16 rounded-full border border-[#2788E8]/45 bg-[#2788E8]/10 flex items-center justify-center text-[#2788E8] shadow-[0_0_15px_rgba(200,139,55,0.25)]">
+                                            <UploadCloud className="h-8 w-8 text-[#2788E8]" />
                                         </div>
                                         <div>
                                             <h3 className="text-base font-bold text-white tracking-tight leading-snug">Drag & Drop Secure File</h3>
@@ -2294,7 +2294,7 @@ export default function Dashboard() {
                                             title="View contact info"
                                         >
                                             <div
-                                                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#C88B37]/45 bg-[#C88B37]/10 text-[#C88B37] font-bold text-sm overflow-hidden shadow-[0_0_8px_rgba(200,139,55,0.1)] group-hover/header:border-[#C88B37] transition-all"
+                                                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#2788E8]/45 bg-[#2788E8]/10 text-[#2788E8] font-bold text-sm overflow-hidden shadow-[0_0_8px_rgba(200,139,55,0.1)] group-hover/header:border-[#2788E8] transition-all"
                                             >
                                                 {getChatAvatarUrl(activeConversation) ? (
                                                     <img src={getChatAvatarUrl(activeConversation)} alt={getChatName(activeConversation)} className="h-full w-full object-cover" />
@@ -2305,11 +2305,11 @@ export default function Dashboard() {
                                                 )}
                                             </div>
                                             <div>
-                                                <h4 className="font-bold dark:text-white text-neutral-900 text-sm group-hover/header:text-[#C88B37] transition-colors">{getChatName(activeConversation)}</h4>
+                                                <h4 className="font-bold dark:text-white text-neutral-900 text-sm group-hover/header:text-[#2788E8] transition-colors">{getChatName(activeConversation)}</h4>
 
                                                 <span className="text-[10px] text-neutral-400 flex items-center gap-1">
                                                     {isSomeoneTyping ? (
-                                                        <span className="text-[#C88B37] font-semibold animate-pulse">is typing...</span>
+                                                        <span className="text-[#2788E8] font-semibold animate-pulse">is typing...</span>
                                                     ) : (
                                                         (() => {
                                                             const partner = activeConversation.type === 'direct' ? getChatPartner(activeConversation) : null;
@@ -2366,7 +2366,7 @@ export default function Dashboard() {
                                                         }}
                                                         className="w-full text-left px-4 py-2 text-xs dark:text-neutral-300 text-neutral-700 dark:hover:bg-white/5 hover:bg-neutral-100 flex items-center gap-2"
                                                     >
-                                                        <Info className="h-3.5 w-3.5 text-[#C88B37]" />
+                                                        <Info className="h-3.5 w-3.5 text-[#2788E8]" />
                                                         View Contact Info
                                                     </button>
                                                     <button
@@ -2376,7 +2376,7 @@ export default function Dashboard() {
                                                         }}
                                                         className="w-full text-left px-4 py-2 text-xs dark:text-neutral-300 text-neutral-700 dark:hover:bg-white/5 hover:bg-neutral-100 flex items-center gap-2"
                                                     >
-                                                        <Search className="h-3.5 w-3.5 text-[#C88B37]" />
+                                                        <Search className="h-3.5 w-3.5 text-[#2788E8]" />
                                                         Search Messages
                                                     </button>
                                                     <div className="border-t dark:border-white/5 border-neutral-100 my-1" />
@@ -2416,7 +2416,7 @@ export default function Dashboard() {
                                 {/* Message Search Bar */}
                                 {showMessageSearch && (
                                     <div className="px-6 py-2 border-b dark:border-white/5 border-neutral-200 flex items-center gap-2 dark:bg-[#0F0F0F] bg-white relative z-10">
-                                        <div className="flex-1 relative flex h-9 items-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.02] bg-neutral-50 px-3.5 focus-within:border-[#C88B37]/60 focus-within:ring-1 focus-within:ring-[#C88B37]/60 focus-within:shadow-[0_0_10px_rgba(200,139,55,0.1)] transition-all duration-300">
+                                        <div className="flex-1 relative flex h-9 items-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.02] bg-neutral-50 px-3.5 focus-within:border-[#2788E8]/60 focus-within:ring-1 focus-within:ring-[#2788E8]/60 focus-within:shadow-[0_0_10px_rgba(200,139,55,0.1)] transition-all duration-300">
                                             <Search className="h-3.5 w-3.5 text-neutral-400 mr-2" />
                                             <input
                                                 type="text"
@@ -2466,7 +2466,7 @@ export default function Dashboard() {
                                                 className={`flex flex-col max-w-[70%] relative z-10 transition-all duration-350 rounded-2xl ${isMe ? 'ml-auto items-end' : 'mr-auto items-start'}`}
                                             >
                                                 {showName && (
-                                                    <span className="text-[10px] text-[#C88B37] font-semibold mb-1 ml-2">{msg.sender_name}</span>
+                                                    <span className="text-[10px] text-[#2788E8] font-semibold mb-1 ml-2">{msg.sender_name}</span>
                                                 )}
 
                                                 {/* Chat Bubble */}
@@ -2485,7 +2485,7 @@ export default function Dashboard() {
                                                                     setReplyingToMessage(msg);
                                                                     setEditingMessage(null); // Clear editing when starting reply
                                                                 }}
-                                                                className="p-1 rounded-md dark:bg-black/50 bg-white dark:hover:bg-[#C88B37]/15 hover:bg-neutral-100 text-neutral-400 dark:hover:text-[#C88B37] hover:text-[#C88B37] transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm"
+                                                                className="p-1 rounded-md dark:bg-black/50 bg-white dark:hover:bg-[#2788E8]/15 hover:bg-neutral-100 text-neutral-400 dark:hover:text-[#2788E8] hover:text-[#2788E8] transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm"
                                                                 title="Reply"
                                                             >
                                                                 <CornerUpLeft className="h-3.5 w-3.5" />
@@ -2498,7 +2498,7 @@ export default function Dashboard() {
                                                                             setMessageInput(msg.body);
                                                                             setReplyingToMessage(null); // Clear reply when starting editing
                                                                         }}
-                                                                        className="p-1 rounded-md dark:bg-black/50 bg-white dark:hover:bg-[#C88B37]/15 hover:bg-neutral-100 text-neutral-400 dark:hover:text-[#C88B37] hover:text-[#C88B37] transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm"
+                                                                        className="p-1 rounded-md dark:bg-black/50 bg-white dark:hover:bg-[#2788E8]/15 hover:bg-neutral-100 text-neutral-400 dark:hover:text-[#2788E8] hover:text-[#2788E8] transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm"
                                                                         title="Edit Message"
                                                                     >
                                                                         <Edit2 className="h-3.5 w-3.5" />
@@ -2519,8 +2519,8 @@ export default function Dashboard() {
                                                     {msg.reply_to && (
                                                         <div
                                                             className={`mb-2 p-2 rounded-lg border-l-[3px] text-xs transition-colors flex items-center justify-between gap-4 cursor-pointer select-none ${isMe
-                                                                    ? 'bg-black/15 border-[#C88B37] text-neutral-200 hover:bg-black/25'
-                                                                    : 'bg-neutral-100/60 dark:bg-white/5 border-[#C88B37] dark:text-neutral-300 text-neutral-600 hover:bg-[#C88B37]/10 dark:hover:bg-white/10'
+                                                                    ? 'bg-black/15 border-[#2788E8] text-neutral-200 hover:bg-black/25'
+                                                                    : 'bg-neutral-100/60 dark:bg-white/5 border-[#2788E8] dark:text-neutral-300 text-neutral-600 hover:bg-[#2788E8]/10 dark:hover:bg-white/10'
                                                                 }`}
                                                             onClick={() => {
                                                                 const element = document.getElementById(`msg-${msg.reply_to!.id}`);
@@ -2534,18 +2534,18 @@ export default function Dashboard() {
                                                             }}
                                                         >
                                                             <div className="flex flex-col min-w-0">
-                                                                <span className="font-bold text-[#C88B37] text-[10px] mb-0.5">
+                                                                <span className="font-bold text-[#2788E8] text-[10px] mb-0.5">
                                                                     {msg.reply_to.sender_name || 'Staff'}
                                                                 </span>
                                                                 <p className="truncate opacity-80 max-w-[200px] flex items-center gap-1">
                                                                     {msg.reply_to.type === 'image' || msg.reply_to.body.includes('Photo') || msg.reply_to.body.includes('📷') ? (
                                                                         <>
-                                                                            <ImageIcon className="h-3 w-3 inline text-[#C88B37] shrink-0" />
+                                                                            <ImageIcon className="h-3 w-3 inline text-[#2788E8] shrink-0" />
                                                                             <span>Photo</span>
                                                                         </>
                                                                     ) : msg.reply_to.type === 'document' || msg.reply_to.body.includes('Document') || msg.reply_to.body.includes('📄') || msg.reply_to.body.includes('File') ? (
                                                                         <>
-                                                                            <FileText className="h-3 w-3 inline text-[#C88B37] shrink-0" />
+                                                                            <FileText className="h-3 w-3 inline text-[#2788E8] shrink-0" />
                                                                             <span>Document</span>
                                                                         </>
                                                                     ) : (
@@ -2575,7 +2575,7 @@ export default function Dashboard() {
                                                                     <span />
                                                                 )}
                                                                 <div className="flex items-center gap-1 shrink-0 text-[9px] opacity-70 select-none ml-auto">
-                                                                    {msg.is_edited && <span className="text-[#C88B37]/70 italic">edited</span>}
+                                                                    {msg.is_edited && <span className="text-[#2788E8]/70 italic">edited</span>}
                                                                     <span>
                                                                         {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                     </span>
@@ -2595,7 +2595,7 @@ export default function Dashboard() {
                                                         <p className="whitespace-pre-wrap break-words text-sm">
                                                             {msg.body}
                                                             <span className="inline-flex items-center gap-1 ml-2 text-[9px] opacity-70 select-none align-bottom">
-                                                                {msg.is_edited && <span className="text-[#C88B37]/70 italic mr-0.5">edited</span>}
+                                                                {msg.is_edited && <span className="text-[#2788E8]/70 italic mr-0.5">edited</span>}
                                                                 <span>
                                                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                 </span>
@@ -2632,22 +2632,22 @@ export default function Dashboard() {
                                 {/* WhatsApp-style Upload Progress Bar - only shown in the active target conversation */}
                                 {isUploading && uploadingTargetConvId === activeConversationId && (
                                     <div className={`mx-6 mb-3 p-3 rounded-xl border flex items-center justify-between shadow-sm backdrop-blur-md transition-all ${
-                                        isDark ? 'border-[#C88B37]/35 bg-[#181818]/90 text-white' : 'border-[#C88B37]/30 bg-white/90 text-neutral-900'
+                                        isDark ? 'border-[#2788E8]/35 bg-[#181818]/90 text-white' : 'border-[#2788E8]/30 bg-white/90 text-neutral-900'
                                     }`}>
                                         <div className="flex items-center gap-3 min-w-0 flex-1 mr-3">
-                                            <div className="relative flex items-center justify-center h-8 w-8 rounded-full bg-[#C88B37]/15 shrink-0">
-                                                <FileText className="h-4 w-4 text-[#C88B37]" />
-                                                <div className="absolute inset-0 rounded-full border-2 border-[#C88B37] border-t-transparent animate-spin" />
+                                            <div className="relative flex items-center justify-center h-8 w-8 rounded-full bg-[#2788E8]/15 shrink-0">
+                                                <FileText className="h-4 w-4 text-[#2788E8]" />
+                                                <div className="absolute inset-0 rounded-full border-2 border-[#2788E8] border-t-transparent animate-spin" />
                                             </div>
                                             <div className="flex flex-col min-w-0">
                                                 <span className="text-xs font-semibold truncate">{uploadingFileName || 'Uploading document...'}</span>
-                                                <span className="text-[11px] text-[#C88B37] font-medium">Uploading attachment • {uploadProgress}%</span>
+                                                <span className="text-[11px] text-[#2788E8] font-medium">Uploading attachment • {uploadProgress}%</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0">
                                             <div className="w-16 h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
                                                 <div 
-                                                    className="h-full bg-[#C88B37] transition-all duration-200 rounded-full" 
+                                                    className="h-full bg-[#2788E8] transition-all duration-200 rounded-full" 
                                                     style={{ width: `${uploadProgress}%` }}
                                                 />
                                             </div>
@@ -2657,10 +2657,10 @@ export default function Dashboard() {
 
                                 {/* Editing Message Header */}
                                 {editingMessage && (
-                                    <div className={`px-6 py-2 border-t flex items-center justify-between text-xs transition-colors ${isDark ? 'bg-[#C88B37]/10 border-white/5 text-neutral-300' : 'bg-[#C88B37]/5 border-neutral-200 text-neutral-700'
+                                    <div className={`px-6 py-2 border-t flex items-center justify-between text-xs transition-colors ${isDark ? 'bg-[#2788E8]/10 border-white/5 text-neutral-300' : 'bg-[#2788E8]/5 border-neutral-200 text-neutral-700'
                                         }`}>
                                         <div className="flex items-center gap-2">
-                                            <Edit2 className="h-3.5 w-3.5 text-[#C88B37]" />
+                                            <Edit2 className="h-3.5 w-3.5 text-[#2788E8]" />
                                             <span>Editing message: <strong className="dark:text-white text-neutral-900 font-semibold">"{editingMessage.body}"</strong></span>
                                         </div>
                                         <button
@@ -2678,19 +2678,19 @@ export default function Dashboard() {
 
                                 {/* Replying Message Header */}
                                 {replyingToMessage && (
-                                    <div className={`px-6 py-2 border-t flex items-center justify-between text-xs transition-colors ${isDark ? 'bg-[#C88B37]/10 border-white/5 text-neutral-300' : 'bg-[#C88B37]/5 border-neutral-200 text-neutral-700'
+                                    <div className={`px-6 py-2 border-t flex items-center justify-between text-xs transition-colors ${isDark ? 'bg-[#2788E8]/10 border-white/5 text-neutral-300' : 'bg-[#2788E8]/5 border-neutral-200 text-neutral-700'
                                         }`}>
                                         <div className="flex items-center gap-2">
-                                            <CornerUpLeft className="h-3.5 w-3.5 text-[#C88B37]" />
+                                            <CornerUpLeft className="h-3.5 w-3.5 text-[#2788E8]" />
                                             <span>
-                                                Replying to <strong className="text-[#C88B37] font-semibold">{replyingToMessage.sender_name}</strong>:{' '}
+                                                Replying to <strong className="text-[#2788E8] font-semibold">{replyingToMessage.sender_name}</strong>:{' '}
                                                 {replyingToMessage.type === 'image' || replyingToMessage.body.includes('Photo') || replyingToMessage.body.includes('📷') ? (
                                                     <span className="inline-flex items-center gap-1 text-[11px] dark:text-neutral-400 text-neutral-600 italic">
-                                                        <ImageIcon className="h-3 w-3 text-[#C88B37]" /> Photo
+                                                        <ImageIcon className="h-3 w-3 text-[#2788E8]" /> Photo
                                                     </span>
                                                 ) : replyingToMessage.type === 'document' || replyingToMessage.body.includes('Document') || replyingToMessage.body.includes('📄') || replyingToMessage.body.includes('File') ? (
                                                     <span className="inline-flex items-center gap-1 text-[11px] dark:text-neutral-400 text-neutral-600 italic">
-                                                        <FileText className="h-3 w-3 text-[#C88B37]" /> Document
+                                                        <FileText className="h-3 w-3 text-[#2788E8]" /> Document
                                                     </span>
                                                 ) : (
                                                     <span className="dark:text-neutral-400 text-neutral-600 italic text-[11px]">"{replyingToMessage.body}"</span>
@@ -2713,7 +2713,7 @@ export default function Dashboard() {
                                 <div className="p-4 bg-transparent relative z-10 w-full shrink-0">
                                     <form
                                         onSubmit={handleSendMessage}
-                                        className="flex items-center gap-2 p-1.5 pl-3 rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.03] bg-neutral-50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-lg max-w-4xl mx-auto w-full focus-within:border-[#C88B37]/60 focus-within:shadow-[0_8px_32px_rgba(200,139,55,0.08)] transition-all duration-300"
+                                        className="flex items-center gap-2 p-1.5 pl-3 rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.03] bg-neutral-50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-lg max-w-4xl mx-auto w-full focus-within:border-[#2788E8]/60 focus-within:shadow-[0_8px_32px_rgba(200,139,55,0.08)] transition-all duration-300"
                                     >
                                         <input
                                             type="file"
@@ -2743,7 +2743,7 @@ export default function Dashboard() {
 
                                         <button
                                             type="button"
-                                            className="p-2 rounded-full text-neutral-400 hover:text-[#C88B37] hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
+                                            className="p-2 rounded-full text-neutral-400 hover:text-[#2788E8] hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
                                             title="Add Emoji"
                                         >
                                             <Smile className="h-4.5 w-4.5" />
@@ -2752,7 +2752,7 @@ export default function Dashboard() {
                                         <button
                                             type="submit"
                                             disabled={!messageInput.trim() || isUploading}
-                                            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C88B37] hover:bg-[#ae7428] text-black shadow-[0_4px_12px_rgba(200,139,55,0.25)] hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200 cursor-pointer shrink-0"
+                                            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2788E8] hover:bg-[#ae7428] text-black shadow-[0_4px_12px_rgba(200,139,55,0.25)] hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200 cursor-pointer shrink-0"
                                         >
                                             <Send className="h-3.5 w-3.5" />
                                         </button>
@@ -2810,8 +2810,8 @@ export default function Dashboard() {
                                                         onClick={() => groupAvatarInputRef.current?.click()}
                                                         className="relative h-28 w-28 flex items-center justify-center mb-4 cursor-pointer group/avatar"
                                                     >
-                                                        <div className="absolute inset-0 rounded-full bg-[#C88B37]/10 animate-pulse group-hover/avatar:bg-[#C88B37]/20 transition-all" />
-                                                        <div className="h-24 w-24 rounded-full border border-[#C88B37]/45 bg-[#C88B37]/10 flex items-center justify-center text-[#C88B37] font-bold text-2xl shadow-[0_0_15px_rgba(200,139,55,0.15)] relative z-10 overflow-hidden">
+                                                        <div className="absolute inset-0 rounded-full bg-[#2788E8]/10 animate-pulse group-hover/avatar:bg-[#2788E8]/20 transition-all" />
+                                                        <div className="h-24 w-24 rounded-full border border-[#2788E8]/45 bg-[#2788E8]/10 flex items-center justify-center text-[#2788E8] font-bold text-2xl shadow-[0_0_15px_rgba(200,139,55,0.15)] relative z-10 overflow-hidden">
                                                             {getChatAvatarUrl(activeConversation) ? (
                                                                 <img src={getChatAvatarUrl(activeConversation)} alt={getChatName(activeConversation)} className="h-full w-full object-cover" />
                                                             ) : (
@@ -2830,7 +2830,7 @@ export default function Dashboard() {
                                                                 type="text"
                                                                 value={tempGroupName}
                                                                 onChange={(e) => setTempGroupName(e.target.value)}
-                                                                className="flex-1 bg-neutral-100 dark:bg-white/5 border dark:border-white/10 border-neutral-200 rounded-lg outline-none text-xs dark:text-white text-neutral-900 px-2.5 py-1 text-center focus:border-[#C88B37]/60 focus:ring-0"
+                                                                className="flex-1 bg-neutral-100 dark:bg-white/5 border dark:border-white/10 border-neutral-200 rounded-lg outline-none text-xs dark:text-white text-neutral-900 px-2.5 py-1 text-center focus:border-[#2788E8]/60 focus:ring-0"
                                                                 maxLength={30}
                                                                 autoFocus
                                                             />
@@ -2860,7 +2860,7 @@ export default function Dashboard() {
                                                             <h3 className="text-base font-bold dark:text-white text-neutral-900 tracking-tight leading-snug">
                                                                 {getChatName(activeConversation)}
                                                             </h3>
-                                                            <Edit2 className="h-3.5 w-3.5 text-[#C88B37] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            <Edit2 className="h-3.5 w-3.5 text-[#2788E8] opacity-0 group-hover:opacity-100 transition-opacity" />
                                                         </div>
                                                     )}
 
@@ -2870,16 +2870,16 @@ export default function Dashboard() {
                                                 </div>
 
                                                 {/* Group Description */}
-                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-4 transition-all duration-300 hover:border-[#C88B37]/20 relative group/desc cursor-pointer" onClick={() => {
+                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-4 transition-all duration-300 hover:border-[#2788E8]/20 relative group/desc cursor-pointer" onClick={() => {
                                                     if (!editingGroupDesc) {
                                                         setTempGroupDesc(activeConversation.description || '');
                                                         setEditingGroupDesc(true);
                                                     }
                                                 }}>
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-[10px] uppercase tracking-wider text-[#C88B37] font-bold">Group Description</span>
+                                                        <span className="text-[10px] uppercase tracking-wider text-[#2788E8] font-bold">Group Description</span>
                                                         {!editingGroupDesc && (
-                                                            <Edit2 className="h-3 w-3 text-[#C88B37] opacity-0 group-hover/desc:opacity-100 transition-opacity" />
+                                                            <Edit2 className="h-3 w-3 text-[#2788E8] opacity-0 group-hover/desc:opacity-100 transition-opacity" />
                                                         )}
                                                     </div>
                                                     {editingGroupDesc ? (
@@ -2887,7 +2887,7 @@ export default function Dashboard() {
                                                             <textarea
                                                                 value={tempGroupDesc}
                                                                 onChange={(e) => setTempGroupDesc(e.target.value)}
-                                                                className="w-full bg-transparent border border-neutral-200 dark:border-white/10 rounded-lg outline-none text-xs dark:text-white text-neutral-800 p-2 focus:border-[#C88B37]/60 focus:ring-0"
+                                                                className="w-full bg-transparent border border-neutral-200 dark:border-white/10 rounded-lg outline-none text-xs dark:text-white text-neutral-800 p-2 focus:border-[#2788E8]/60 focus:ring-0"
                                                                 rows={3}
                                                                 autoFocus
                                                             />
@@ -2903,7 +2903,7 @@ export default function Dashboard() {
                                                                         handleUpdateGroupDetails({ description: tempGroupDesc.trim() });
                                                                         setEditingGroupDesc(false);
                                                                     }}
-                                                                    className="bg-[#C88B37] hover:bg-[#ae7428] text-black font-semibold text-xs px-3 py-1 rounded-lg"
+                                                                    className="bg-[#2788E8] hover:bg-[#ae7428] text-black font-semibold text-xs px-3 py-1 rounded-lg"
                                                                 >
                                                                     Save
                                                                 </button>
@@ -2926,14 +2926,14 @@ export default function Dashboard() {
                                                     return (
                                                         <div className="grid grid-cols-2 gap-2">
                                                             {adminMember && (
-                                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-3.5 hover:border-[#C88B37]/20 transition-all">
-                                                                    <span className="text-[9px] uppercase tracking-wider text-[#C88B37] font-bold block mb-1">Created by</span>
+                                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-3.5 hover:border-[#2788E8]/20 transition-all">
+                                                                    <span className="text-[9px] uppercase tracking-wider text-[#2788E8] font-bold block mb-1">Created by</span>
                                                                     <span className="text-xs dark:text-white text-neutral-900 font-semibold truncate block">{adminMember.name}</span>
                                                                 </div>
                                                             )}
                                                             {dateStr && (
-                                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-3.5 hover:border-[#C88B37]/20 transition-all">
-                                                                    <span className="text-[9px] uppercase tracking-wider text-[#C88B37] font-bold block mb-1">Created</span>
+                                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-3.5 hover:border-[#2788E8]/20 transition-all">
+                                                                    <span className="text-[9px] uppercase tracking-wider text-[#2788E8] font-bold block mb-1">Created</span>
                                                                     <span className="text-xs dark:text-white text-neutral-900 font-semibold">{dateStr}</span>
                                                                 </div>
                                                             )}
@@ -2942,10 +2942,10 @@ export default function Dashboard() {
                                                 })()}
 
                                                 {/* Security Shield Card */}
-                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-4 transition-all duration-300 hover:border-[#C88B37]/20 flex gap-3.5 items-start">
-                                                    <ShieldCheck className="h-5 w-5 text-[#C88B37] shrink-0 mt-0.5" />
+                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-4 transition-all duration-300 hover:border-[#2788E8]/20 flex gap-3.5 items-start">
+                                                    <ShieldCheck className="h-5 w-5 text-[#2788E8] shrink-0 mt-0.5" />
                                                     <div>
-                                                        <span className="text-[10px] uppercase tracking-wider text-[#C88B37] font-bold block mb-1">Encrypted Room</span>
+                                                        <span className="text-[10px] uppercase tracking-wider text-[#2788E8] font-bold block mb-1">Encrypted Room</span>
                                                         <p className="text-xs text-neutral-400 dark:text-neutral-500 leading-relaxed">
                                                             Messages in this group are secured with AES-256 end-to-end encryption.
                                                         </p>
@@ -2993,7 +2993,7 @@ export default function Dashboard() {
                                                                                 {member.name}{isMe ? ' (You)' : ''}
                                                                             </span>
                                                                             {isAdmin && (
-                                                                                <span className="text-[9px] font-bold text-[#C88B37] border border-[#C88B37]/45 px-1.5 py-0.5 rounded bg-[#C88B37]/5 shrink-0">
+                                                                                <span className="text-[9px] font-bold text-[#2788E8] border border-[#2788E8]/45 px-1.5 py-0.5 rounded bg-[#2788E8]/5 shrink-0">
                                                                                     Admin
                                                                                 </span>
                                                                             )}
@@ -3015,7 +3015,7 @@ export default function Dashboard() {
                                                 <div className="flex flex-col items-center text-center">
                                                     <div className="relative h-32 w-32 flex items-center justify-center mb-4 group/avatar">
                                                         {/* Glowing ring wrapper */}
-                                                        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#C88B37] via-[#f3cb8c] to-[#ae7428] opacity-70 animate-[spin_10s_linear_infinite] p-0.5" />
+                                                        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#2788E8] via-[#f3cb8c] to-[#ae7428] opacity-70 animate-[spin_10s_linear_infinite] p-0.5" />
                                                         <div className="absolute inset-[3px] rounded-full dark:bg-[#0F0F0F] bg-white z-0" />
 
                                                         {/* Actual Avatar */}
@@ -3059,9 +3059,9 @@ export default function Dashboard() {
                                                 </div>
 
                                                 {/* Bio/About Card */}
-                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-4 transition-all duration-300 hover:border-[#C88B37]/20">
+                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-4 transition-all duration-300 hover:border-[#2788E8]/20">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <Info className="h-4 w-4 text-[#C88B37]" />
+                                                        <Info className="h-4 w-4 text-[#2788E8]" />
                                                         <span className="text-[10px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-bold">
                                                             Bio / Status
                                                         </span>
@@ -3072,9 +3072,9 @@ export default function Dashboard() {
                                                 </div>
 
                                                 {/* Contact Details Card */}
-                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-4 transition-all duration-300 hover:border-[#C88B37]/20 space-y-4">
+                                                <div className="dark:bg-white/[0.01] bg-neutral-50 border dark:border-white/5 border-neutral-100 rounded-2xl p-4 transition-all duration-300 hover:border-[#2788E8]/20 space-y-4">
                                                     <div className="flex items-start gap-3">
-                                                        <Mail className="h-4 w-4 text-[#C88B37] shrink-0 mt-0.5" />
+                                                        <Mail className="h-4 w-4 text-[#2788E8] shrink-0 mt-0.5" />
                                                         <div className="min-w-0 flex-1">
                                                             <span className="text-[9px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-bold block mb-0.5">
                                                                 Email Address
@@ -3086,7 +3086,7 @@ export default function Dashboard() {
                                                     </div>
 
                                                     <div className="border-t dark:border-white/5 border-neutral-200/50 pt-3 flex items-start gap-3">
-                                                        <ShieldCheck className="h-4 w-4 text-[#C88B37] shrink-0 mt-0.5" />
+                                                        <ShieldCheck className="h-4 w-4 text-[#2788E8] shrink-0 mt-0.5" />
                                                         <div>
                                                             <span className="text-[9px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-bold block mb-0.5">
                                                                 E2EE Encryption
@@ -3113,7 +3113,7 @@ export default function Dashboard() {
                     <div className="w-full max-w-md rounded-2xl border dark:border-white/10 border-neutral-200 dark:bg-[#141414] bg-white p-6 shadow-[0_15px_40px_rgba(200,139,55,0.08)]">
                         <div className="flex items-center justify-between mb-5">
                             <h3 className="text-lg font-bold dark:text-white text-neutral-900 flex items-center gap-2">
-                                <Plus className="h-5 w-5 text-[#C88B37]" />
+                                <Plus className="h-5 w-5 text-[#2788E8]" />
                                 New Direct Chat
                             </h3>
                             <button
@@ -3136,7 +3136,7 @@ export default function Dashboard() {
                                         onClick={() => handleStartChat(friend.id)}
                                         className="flex items-center gap-3.5 p-2.5 rounded-xl cursor-pointer dark:hover:bg-white/5 hover:bg-neutral-100 border border-transparent dark:hover:border-white/5 hover:border-neutral-200 transition-all"
                                     >
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#C88B37]/45 bg-[#C88B37]/10 text-[#C88B37] font-bold text-xs overflow-hidden">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2788E8]/45 bg-[#2788E8]/10 text-[#2788E8] font-bold text-xs overflow-hidden">
                                             {friend.avatar_url ? (
                                                 <img src={friend.avatar_url} alt={friend.name} className="h-full w-full object-cover" />
                                             ) : (
@@ -3161,7 +3161,7 @@ export default function Dashboard() {
                     <div className="w-full max-w-md rounded-2xl border dark:border-white/10 border-neutral-200 dark:bg-[#141414] bg-white p-6 shadow-[0_15px_40px_rgba(200,139,55,0.08)] animate-scale-in">
                         <div className="flex items-center justify-between mb-5">
                             <h3 className="text-lg font-bold dark:text-white text-neutral-900 flex items-center gap-2">
-                                <Plus className="h-5 w-5 text-[#C88B37]" />
+                                <Plus className="h-5 w-5 text-[#2788E8]" />
                                 Create Custom Tab
                             </h3>
                             <button
@@ -3183,8 +3183,8 @@ export default function Dashboard() {
                                     maxLength={20}
                                     placeholder="e.g. Work, Favorites"
                                     className={`h-11 rounded-xl px-4 text-sm outline-none border transition-all ${isDark
-                                            ? 'bg-white/[0.03] border-white/8 text-white placeholder-neutral-500 focus:border-[#C88B37]/60 focus:bg-white/5'
-                                            : 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder-neutral-400 focus:border-[#C88B37]/60'
+                                            ? 'bg-white/[0.03] border-white/8 text-white placeholder-neutral-500 focus:border-[#2788E8]/60 focus:bg-white/5'
+                                            : 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder-neutral-400 focus:border-[#2788E8]/60'
                                         }`}
                                 />
                             </div>
@@ -3211,7 +3211,7 @@ export default function Dashboard() {
                                         return (
                                             <label
                                                 key={`tab-select-conv-${convId}`}
-                                                className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors ${isChecked ? 'bg-[#C88B37]/10 border border-transparent' : ''
+                                                className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors ${isChecked ? 'bg-[#2788E8]/10 border border-transparent' : ''
                                                     }`}
                                             >
                                                 <input
@@ -3224,9 +3224,9 @@ export default function Dashboard() {
                                                                 : [...prev, convId]
                                                         );
                                                     }}
-                                                    className="h-4 w-4 rounded border-neutral-300 text-[#C88B37] focus:ring-[#C88B37]"
+                                                    className="h-4 w-4 rounded border-neutral-300 text-[#2788E8] focus:ring-[#2788E8]"
                                                 />
-                                                <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#C88B37]/45 bg-[#C88B37]/10 text-[#C88B37] font-bold text-xs overflow-hidden">
+                                                <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#2788E8]/45 bg-[#2788E8]/10 text-[#2788E8] font-bold text-xs overflow-hidden">
                                                     {thumb ? (
                                                         <img src={thumb} alt={name} className="h-full w-full object-cover" />
                                                     ) : (
@@ -3249,7 +3249,7 @@ export default function Dashboard() {
                             <button
                                 onClick={handleCreateTab}
                                 disabled={!newTabName.trim() || newTabSelectedIds.length === 0}
-                                className="h-11 w-full bg-[#C88B37] hover:bg-[#ae7428] text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(200,139,55,0.25)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                                className="h-11 w-full bg-[#2788E8] hover:bg-[#ae7428] text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(200,139,55,0.25)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                             >
                                 Create Tab
                             </button>
@@ -3265,7 +3265,7 @@ export default function Dashboard() {
 
                         <div className="flex items-center justify-between mb-5">
                             <h3 className="text-lg font-bold dark:text-white text-neutral-900 flex items-center gap-2">
-                                <Users className="h-5 w-5 text-[#C88B37]" />
+                                <Users className="h-5 w-5 text-[#2788E8]" />
                                 Contacts Manager
                             </h3>
                             <button
@@ -3280,7 +3280,7 @@ export default function Dashboard() {
                             <button
                                 onClick={() => setFriendsModalTab('search')}
                                 className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 cursor-pointer transition-all ${friendsModalTab === 'search'
-                                        ? 'border-[#C88B37] dark:text-white text-neutral-900'
+                                        ? 'border-[#2788E8] dark:text-white text-neutral-900'
                                         : 'border-transparent text-neutral-500 hover:text-neutral-300'
                                     }`}
                             >
@@ -3289,7 +3289,7 @@ export default function Dashboard() {
                             <button
                                 onClick={() => setFriendsModalTab('requests')}
                                 className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 cursor-pointer transition-all flex items-center gap-1.5 ${friendsModalTab === 'requests'
-                                        ? 'border-[#C88B37] dark:text-white text-neutral-900'
+                                        ? 'border-[#2788E8] dark:text-white text-neutral-900'
                                         : 'border-transparent text-neutral-500 hover:text-neutral-300'
                                     }`}
                             >
@@ -3302,7 +3302,7 @@ export default function Dashboard() {
 
                         {friendsModalTab === 'search' ? (
                             <div className="space-y-4">
-                                <div className="relative flex h-10 w-full items-center rounded-full border dark:border-white/8 border-neutral-200/80 dark:bg-white/[0.02] bg-neutral-50 px-4 focus-within:border-[#C88B37]/60 focus-within:ring-1 focus-within:ring-[#C88B37]/60 focus-within:shadow-[0_0_12px_rgba(200,139,55,0.12)] transition-all duration-300">
+                                <div className="relative flex h-10 w-full items-center rounded-full border dark:border-white/8 border-neutral-200/80 dark:bg-white/[0.02] bg-neutral-50 px-4 focus-within:border-[#2788E8]/60 focus-within:ring-1 focus-within:ring-[#2788E8]/60 focus-within:shadow-[0_0_12px_rgba(200,139,55,0.12)] transition-all duration-300">
                                     <Search className="h-3.5 w-3.5 text-neutral-400 mr-2 shrink-0" />
                                     <input
                                         type="text"
@@ -3333,7 +3333,7 @@ export default function Dashboard() {
                                                     className="flex items-center justify-between p-2 rounded-xl dark:hover:bg-white/5 hover:bg-neutral-100 border border-transparent dark:hover:border-white/5 hover:border-neutral-200 transition-all"
                                                 >
                                                     <div className="flex items-center gap-3">
-                                                        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#C88B37]/45 bg-[#C88B37]/10 text-[#C88B37] font-bold text-xs overflow-hidden">
+                                                        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2788E8]/45 bg-[#2788E8]/10 text-[#2788E8] font-bold text-xs overflow-hidden">
                                                             {user.avatar_url ? (
                                                                 <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" />
                                                             ) : (
@@ -3351,8 +3351,8 @@ export default function Dashboard() {
                                                             Connected
                                                         </span>
                                                     ) : isSentPending ? (
-                                                        <span className="px-3 py-1 bg-[#C88B37]/10 border border-[#C88B37]/20 text-[#C88B37] text-[10px] font-semibold uppercase rounded-full flex items-center gap-1">
-                                                            <ClockIcon className="h-3 w-3 animate-spin text-[#C88B37]" />
+                                                        <span className="px-3 py-1 bg-[#2788E8]/10 border border-[#2788E8]/20 text-[#2788E8] text-[10px] font-semibold uppercase rounded-full flex items-center gap-1">
+                                                            <ClockIcon className="h-3 w-3 animate-spin text-[#2788E8]" />
                                                             Sent
                                                         </span>
                                                     ) : isIncomingPending ? (
@@ -3362,7 +3362,7 @@ export default function Dashboard() {
                                                     ) : (
                                                         <button
                                                             onClick={() => handleSendFriendRequest(user.id)}
-                                                            className="h-8 bg-[#C88B37]/15 hover:bg-[#C88B37] hover:text-black border border-[#C88B37]/45 text-[#C88B37] text-xs font-bold rounded-lg px-3 transition-all cursor-pointer"
+                                                            className="h-8 bg-[#2788E8]/15 hover:bg-[#2788E8] hover:text-black border border-[#2788E8]/45 text-[#2788E8] text-xs font-bold rounded-lg px-3 transition-all cursor-pointer"
                                                         >
                                                             Add Contact
                                                         </button>
@@ -3387,7 +3387,7 @@ export default function Dashboard() {
                                             className="flex items-center justify-between p-3.5 rounded-xl border dark:border-white/5 border-neutral-200 dark:bg-white/[0.01] bg-neutral-50 dark:hover:bg-white/[0.03] hover:bg-neutral-100 transition-all"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#C88B37]/45 bg-[#C88B37]/10 text-[#C88B37] font-bold text-xs overflow-hidden">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2788E8]/45 bg-[#2788E8]/10 text-[#2788E8] font-bold text-xs overflow-hidden">
                                                     {req.sender.avatar_url ? (
                                                         <img src={req.sender.avatar_url} alt={req.sender.name} className="h-full w-full object-cover" />
                                                     ) : (
@@ -3403,7 +3403,7 @@ export default function Dashboard() {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleAcceptRequest(req.id)}
-                                                    className="flex h-8 w-8 items-center justify-center bg-[#C88B37] hover:bg-[#ae7428] text-black rounded-lg cursor-pointer transition-colors shadow-[0_0_8px_rgba(200,139,55,0.2)]"
+                                                    className="flex h-8 w-8 items-center justify-center bg-[#2788E8] hover:bg-[#ae7428] text-black rounded-lg cursor-pointer transition-colors shadow-[0_0_8px_rgba(200,139,55,0.2)]"
                                                     title="Accept Request"
                                                 >
                                                     <Check className="h-4.5 w-4.5" />
@@ -3437,8 +3437,8 @@ export default function Dashboard() {
                             {/* Header */}
                             <div className="px-5 py-5 border-b dark:border-white/5 border-neutral-100">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="h-8 w-8 rounded-xl bg-[#C88B37]/15 border border-[#C88B37]/30 flex items-center justify-center">
-                                        <Settings className="h-4 w-4 text-[#C88B37]" />
+                                    <div className="h-8 w-8 rounded-xl bg-[#2788E8]/15 border border-[#2788E8]/30 flex items-center justify-center">
+                                        <Settings className="h-4 w-4 text-[#2788E8]" />
                                     </div>
                                     <span className="font-bold text-sm dark:text-white text-neutral-900">Settings</span>
                                 </div>
@@ -3456,7 +3456,7 @@ export default function Dashboard() {
                                         key={id}
                                         onClick={() => setSettingsTab(id)}
                                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${settingsTab === id
-                                                ? 'bg-[#C88B37]/15 text-[#C88B37] border border-[#C88B37]/30 shadow-[0_0_12px_rgba(200,139,55,0.08)]'
+                                                ? 'bg-[#2788E8]/15 text-[#2788E8] border border-[#2788E8]/30 shadow-[0_0_12px_rgba(200,139,55,0.08)]'
                                                 : 'dark:text-neutral-400 text-neutral-600 dark:hover:bg-white/5 hover:bg-neutral-200/60 border border-transparent'
                                             }`}
                                     >
@@ -3506,9 +3506,9 @@ export default function Dashboard() {
                                         <div className={`flex items-center gap-5 p-5 rounded-xl border transition-colors ${isDark ? 'bg-white/[0.02] border-white/5' : 'bg-neutral-50 border-neutral-200'
                                             }`}>
                                             <div className="relative group cursor-pointer shrink-0" onClick={() => avatarInputRef.current?.click()}>
-                                                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-[#C88B37]/60 bg-[#C88B37]/10 text-[#C88B37] font-bold text-2xl overflow-hidden shadow-[0_0_20px_rgba(200,139,55,0.2)]">
+                                                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-[#2788E8]/60 bg-[#2788E8]/10 text-[#2788E8] font-bold text-2xl overflow-hidden shadow-[0_0_20px_rgba(200,139,55,0.2)]">
                                                     {isUploadingAvatar ? (
-                                                        <LoaderCircle className="h-7 w-7 animate-spin text-[#C88B37]" />
+                                                        <LoaderCircle className="h-7 w-7 animate-spin text-[#2788E8]" />
                                                     ) : currentUser?.avatar_url ? (
                                                         <img src={currentUser.avatar_url} alt={currentUser.name} className="h-full w-full object-cover" />
                                                     ) : (
@@ -3525,7 +3525,7 @@ export default function Dashboard() {
                                             <div>
                                                 <p className="font-semibold dark:text-white text-neutral-900 text-sm">{currentUser?.name}</p>
                                                 <p className="text-xs dark:text-neutral-500 text-neutral-400 mt-0.5">{currentUser?.email}</p>
-                                                <button type="button" onClick={() => avatarInputRef.current?.click()} className="mt-2 text-[11px] text-[#C88B37] hover:underline cursor-pointer">Change photo</button>
+                                                <button type="button" onClick={() => avatarInputRef.current?.click()} className="mt-2 text-[11px] text-[#2788E8] hover:underline cursor-pointer">Change photo</button>
                                             </div>
                                         </div>
 
@@ -3534,7 +3534,7 @@ export default function Dashboard() {
                                             <input
                                                 type="text" required value={editName}
                                                 onChange={e => setEditName(e.target.value)}
-                                                className={`h-11 rounded-xl px-4 text-sm outline-none border transition-all ${isDark ? 'bg-white/[0.03] border-white/8 text-white placeholder-neutral-500 focus:border-[#C88B37]/60 focus:bg-white/5' : 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder-neutral-400 focus:border-[#C88B37]/60'
+                                                className={`h-11 rounded-xl px-4 text-sm outline-none border transition-all ${isDark ? 'bg-white/[0.03] border-white/8 text-white placeholder-neutral-500 focus:border-[#2788E8]/60 focus:bg-white/5' : 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder-neutral-400 focus:border-[#2788E8]/60'
                                                     }`}
                                                 placeholder="Your display name"
                                             />
@@ -3545,7 +3545,7 @@ export default function Dashboard() {
                                             <input
                                                 type="text" value={editAbout}
                                                 onChange={e => setEditAbout(e.target.value)}
-                                                className={`h-11 rounded-xl px-4 text-sm outline-none border transition-all ${isDark ? 'bg-white/[0.03] border-white/8 text-white placeholder-neutral-500 focus:border-[#C88B37]/60 focus:bg-white/5' : 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder-neutral-400 focus:border-[#C88B37]/60'
+                                                className={`h-11 rounded-xl px-4 text-sm outline-none border transition-all ${isDark ? 'bg-white/[0.03] border-white/8 text-white placeholder-neutral-500 focus:border-[#2788E8]/60 focus:bg-white/5' : 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder-neutral-400 focus:border-[#2788E8]/60'
                                                     }`}
                                                 placeholder="Available, Busy, In a meeting..."
                                             />
@@ -3553,7 +3553,7 @@ export default function Dashboard() {
 
                                         <button
                                             type="submit" disabled={isSavingProfile}
-                                            className="h-11 w-full bg-[#C88B37] hover:bg-[#ae7428] text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(200,139,55,0.25)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+                                            className="h-11 w-full bg-[#2788E8] hover:bg-[#ae7428] text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(200,139,55,0.25)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
                                         >
                                             {isSavingProfile && <LoaderCircle className="h-4 w-4 animate-spin" />}
                                             Save Changes
@@ -3573,12 +3573,12 @@ export default function Dashboard() {
                                             <div className="space-y-3">
                                                 {(['everyone', 'contacts', 'nobody'] as const).map(option => (
                                                     <label key={option} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer border transition-all ${editLastSeen === option
-                                                            ? 'border-[#C88B37]/40 bg-[#C88B37]/8'
+                                                            ? 'border-[#2788E8]/40 bg-[#2788E8]/8'
                                                             : 'border-transparent dark:hover:bg-white/3 hover:bg-neutral-100'
                                                         }`}>
-                                                        <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${editLastSeen === option ? 'border-[#C88B37]' : 'dark:border-white/20 border-neutral-300'
+                                                        <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${editLastSeen === option ? 'border-[#2788E8]' : 'dark:border-white/20 border-neutral-300'
                                                             }`}>
-                                                            {editLastSeen === option && <div className="h-2 w-2 rounded-full bg-[#C88B37]" />}
+                                                            {editLastSeen === option && <div className="h-2 w-2 rounded-full bg-[#2788E8]" />}
                                                         </div>
                                                         <input type="radio" name="last_seen" value={option} checked={editLastSeen === option} onChange={() => setEditLastSeen(option)} className="sr-only" />
                                                         <div>
@@ -3597,7 +3597,7 @@ export default function Dashboard() {
                                         </div>
                                         <button
                                             type="submit" disabled={isSavingProfile}
-                                            className="h-11 w-full bg-[#C88B37] hover:bg-[#ae7428] text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(200,139,55,0.25)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+                                            className="h-11 w-full bg-[#2788E8] hover:bg-[#ae7428] text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(200,139,55,0.25)] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
                                         >
                                             {isSavingProfile && <LoaderCircle className="h-4 w-4 animate-spin" />}
                                             Save Privacy Settings
@@ -3616,12 +3616,12 @@ export default function Dashboard() {
                                             </div>
                                             <button
                                                 onClick={() => setIsDark(!isDark)}
-                                                className={`relative h-7 w-14 rounded-full border transition-all cursor-pointer ${isDark ? 'bg-[#C88B37]/80 border-[#C88B37]/60' : 'bg-neutral-200 border-neutral-300'
+                                                className={`relative h-7 w-14 rounded-full border transition-all cursor-pointer ${isDark ? 'bg-[#2788E8]/80 border-[#2788E8]/60' : 'bg-neutral-200 border-neutral-300'
                                                     }`}
                                             >
                                                 <span className={`absolute top-0.5 h-6 w-6 rounded-full shadow-md transition-all duration-300 flex items-center justify-center ${isDark ? 'left-[calc(100%-26px)] bg-white' : 'left-0.5 bg-white'
                                                     }`}>
-                                                    {isDark ? <Moon className="h-3.5 w-3.5 text-[#C88B37]" /> : <Sun className="h-3.5 w-3.5 text-amber-500" />}
+                                                    {isDark ? <Moon className="h-3.5 w-3.5 text-[#2788E8]" /> : <Sun className="h-3.5 w-3.5 text-amber-500" />}
                                                 </span>
                                             </button>
                                         </div>
@@ -3634,7 +3634,7 @@ export default function Dashboard() {
                                             </div>
                                             <button
                                                 onClick={() => { const n = !notifSound; setNotifSound(n); localStorage.setItem('notif_sound', n ? 'on' : 'off'); }}
-                                                className={`relative h-7 w-14 rounded-full border transition-all cursor-pointer ${notifSound ? 'bg-[#C88B37]/80 border-[#C88B37]/60' : 'bg-neutral-200 dark:bg-white/10 border-neutral-300 dark:border-white/10'
+                                                className={`relative h-7 w-14 rounded-full border transition-all cursor-pointer ${notifSound ? 'bg-[#2788E8]/80 border-[#2788E8]/60' : 'bg-neutral-200 dark:bg-white/10 border-neutral-300 dark:border-white/10'
                                                     }`}
                                             >
                                                 <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-md transition-all duration-300 ${notifSound ? 'left-[calc(100%-26px)]' : 'left-0.5'
@@ -3671,21 +3671,21 @@ export default function Dashboard() {
                                             <p className="text-xs font-semibold dark:text-neutral-400 text-neutral-500 uppercase tracking-wider">Account Details</p>
                                             <div className="space-y-3">
                                                 <div className="flex items-center gap-3">
-                                                    <User className="h-4 w-4 text-[#C88B37] shrink-0" />
+                                                    <User className="h-4 w-4 text-[#2788E8] shrink-0" />
                                                     <div>
                                                         <p className="text-[11px] dark:text-neutral-500 text-neutral-400">Display Name</p>
                                                         <p className="text-sm font-semibold dark:text-white text-neutral-900">{currentUser?.name}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <Bell className="h-4 w-4 text-[#C88B37] shrink-0" />
+                                                    <Bell className="h-4 w-4 text-[#2788E8] shrink-0" />
                                                     <div>
                                                         <p className="text-[11px] dark:text-neutral-500 text-neutral-400">Email Address</p>
                                                         <p className="text-sm font-semibold dark:text-white text-neutral-900">{currentUser?.email}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <ShieldCheck className="h-4 w-4 text-[#C88B37] shrink-0" />
+                                                    <ShieldCheck className="h-4 w-4 text-[#2788E8] shrink-0" />
                                                     <div>
                                                         <p className="text-[11px] dark:text-neutral-500 text-neutral-400">Account Status</p>
                                                         <p className="text-sm font-semibold text-green-500">Active & Verified</p>
@@ -3693,10 +3693,10 @@ export default function Dashboard() {
                                                 </div>
                                                 {currentUser?.is_admin && (
                                                     <div className="flex items-center gap-3">
-                                                        <Sparkles className="h-4 w-4 text-[#C88B37] shrink-0" />
+                                                        <Sparkles className="h-4 w-4 text-[#2788E8] shrink-0" />
                                                         <div>
                                                             <p className="text-[11px] dark:text-neutral-500 text-neutral-400">Role</p>
-                                                            <p className="text-sm font-semibold text-[#C88B37]">Administrator</p>
+                                                            <p className="text-sm font-semibold text-[#2788E8]">Administrator</p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -3765,7 +3765,7 @@ export default function Dashboard() {
                             }}
                             className="w-full text-left px-4 py-2 dark:text-neutral-300 text-neutral-700 dark:hover:bg-white/5 hover:bg-neutral-100 flex items-center gap-2"
                         >
-                            <Pin className="h-3.5 w-3.5 text-[#C88B37] rotate-45" />
+                            <Pin className="h-3.5 w-3.5 text-[#2788E8] rotate-45" />
                             {isPinned ? 'Unpin Chat' : 'Pin Chat'}
                         </button>
                         <button

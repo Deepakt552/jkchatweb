@@ -64,8 +64,8 @@ export default function Security({ loginHistory, auditLogs, activeDevicesCount }
                         <p className="text-neutral-500">Monitor organizational authentication patterns and administrative logs.</p>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-4 shadow-sm dark:border-white/5 flex items-center gap-3 hover:border-[#C88B37]/15 hover:scale-[1.01] transition-all duration-300">
-                        <Smartphone className="h-8 w-8 text-[#C88B37]" />
+                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-4 shadow-sm dark:border-white/5 flex items-center gap-3 hover:border-[#2788E8]/15 hover:scale-[1.01] transition-all duration-300">
+                        <Smartphone className="h-8 w-8 text-[#2788E8]" />
                         <div>
                             <div className="text-2xl font-bold">{activeDevicesCount}</div>
                             <div className="text-xs text-neutral-500">Active tokens/devices</div>
@@ -78,10 +78,10 @@ export default function Security({ loginHistory, auditLogs, activeDevicesCount }
                     {/* Left: Login History */}
                     <div className="space-y-4">
                         <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                            <History className="h-5 w-5 text-[#C88B37]" />
+                            <History className="h-5 w-5 text-[#2788E8]" />
                             Access Login History
                         </h2>
-                        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md shadow-sm dark:border-white/5 hover:border-[#C88B37]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md shadow-sm dark:border-white/5 hover:border-[#2788E8]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                             <table className="w-full border-collapse text-left text-xs">
                                 <thead className="border-b border-neutral-200 bg-neutral-50 dark:border-white/5 dark:bg-[#0A0A0A]">
                                     <tr>
@@ -123,10 +123,10 @@ export default function Security({ loginHistory, auditLogs, activeDevicesCount }
                     {/* Right: Administrative Audit Log */}
                     <div className="space-y-4">
                         <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                            <ShieldCheck className="h-5 w-5 text-[#C88B37]" />
+                            <ShieldCheck className="h-5 w-5 text-[#2788E8]" />
                             Administrative Audit Trails
                         </h2>
-                        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md shadow-sm dark:border-white/5 hover:border-[#C88B37]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md shadow-sm dark:border-white/5 hover:border-[#2788E8]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                             <table className="w-full border-collapse text-left text-xs">
                                 <thead className="border-b border-neutral-200 bg-neutral-50 dark:border-white/5 dark:bg-[#0A0A0A]">
                                     <tr>
@@ -145,7 +145,7 @@ export default function Security({ loginHistory, auditLogs, activeDevicesCount }
                                                 </div>
                                                 <div className="text-xxs text-neutral-400">{log.ip_address}</div>
                                             </td>
-                                            <td className="px-6 py-3 font-semibold text-[#C88B37]">{log.action}</td>
+                                            <td className="px-6 py-3 font-semibold text-[#2788E8]">{log.action}</td>
                                             <td className="px-6 py-3 text-neutral-500">
                                                 {log.resource_type} (ID: {log.resource_id})
                                             </td>

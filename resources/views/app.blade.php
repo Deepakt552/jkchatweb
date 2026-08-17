@@ -6,6 +6,8 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <link rel="icon" type="image/png" href="/launcher.png">
+        <link rel="apple-touch-icon" href="/launcher.png">
 
         <!-- Theme Initialization Script -->
         <script>

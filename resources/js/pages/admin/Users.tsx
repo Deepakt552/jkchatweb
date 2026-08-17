@@ -171,7 +171,7 @@ export default function Users({ users, filters }: Props) {
                     <div className="flex flex-wrap items-center gap-2">
                         <button 
                             onClick={() => setIsAddOpen(true)}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#C88B37] to-[#AA7122] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#C88B37]/20 hover:brightness-110 hover:scale-[1.02] transition-all duration-300"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#2788E8] to-[#32C2A3] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#2788E8]/20 hover:brightness-110 hover:scale-[1.02] transition-all duration-300"
                         >
                             <Plus className="h-4 w-4" />
                             Add Account
@@ -207,16 +207,16 @@ export default function Users({ users, filters }: Props) {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search by name, email, username or department..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-200 bg-white text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-200 bg-white text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                         />
                     </div>
-                    <button type="submit" className="rounded-xl bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 dark:bg-white/5 dark:text-[#C88B37] dark:border dark:border-[#C88B37]/20 dark:hover:bg-[#C88B37]/10 hover:scale-[1.02] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                    <button type="submit" className="rounded-xl bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 dark:bg-white/5 dark:text-[#2788E8] dark:border dark:border-[#2788E8]/20 dark:hover:bg-[#2788E8]/10 hover:scale-[1.02] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                         Search
                     </button>
                 </form>
 
                 {/* Users Table */}
-                <div className="overflow-x-auto rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md dark:border-white/5 shadow-sm hover:border-[#C88B37]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                <div className="overflow-x-auto rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md dark:border-white/5 shadow-sm hover:border-[#2788E8]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                     <table className="w-full border-collapse text-left text-sm">
                         <thead className="border-b border-neutral-200 bg-neutral-50 dark:border-white/5 dark:bg-[#0A0A0A]">
                             <tr>
@@ -233,7 +233,7 @@ export default function Users({ users, filters }: Props) {
                                 <tr key={user.id} className="hover:bg-neutral-50/50 dark:hover:bg-white/5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C88B37]/20 to-[#E5A93B]/10 border border-[#C88B37]/35 text-[#C88B37] font-bold text-xs flex items-center justify-center select-none shadow-sm uppercase">
+                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2788E8]/20 to-[#E5A93B]/10 border border-[#2788E8]/35 text-[#2788E8] font-bold text-xs flex items-center justify-center select-none shadow-sm uppercase">
                                                 {user.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
                                             </div>
                                             <div className="flex flex-col min-w-0">
@@ -250,7 +250,7 @@ export default function Users({ users, filters }: Props) {
                                     <td className="px-6 py-4 space-y-1">
                                         <div className="flex gap-1 flex-wrap">
                                             {user.is_admin ? (
-                                                <span className="rounded bg-[#C88B37]/10 px-2 py-0.5 text-[10px] font-extrabold text-[#C88B37] dark:bg-[#C88B37]/15 dark:text-[#C88B37]">Admin</span>
+                                                <span className="rounded bg-[#2788E8]/10 px-2 py-0.5 text-[10px] font-extrabold text-[#2788E8] dark:bg-[#2788E8]/15 dark:text-[#2788E8]">Admin</span>
                                             ) : (
                                                 <span className="rounded bg-neutral-100 px-2 py-0.5 text-[10px] font-extrabold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">User</span>
                                             )}
@@ -306,7 +306,7 @@ export default function Users({ users, filters }: Props) {
                                             title="Edit Profile" 
                                             icon={Edit2} 
                                             onClick={() => handleEditClick(user)}
-                                            colorClass="text-[#C88B37] hover:border-[#C88B37]/35 hover:bg-[#C88B37]/10"
+                                            colorClass="text-[#2788E8] hover:border-[#2788E8]/35 hover:bg-[#2788E8]/10"
                                         />
                                         <ActionButton 
                                             title="Delete Account" 
@@ -334,7 +334,7 @@ export default function Users({ users, filters }: Props) {
                                         required
                                         value={addForm.data.name}
                                         onChange={(e) => addForm.setData('name', e.target.value)}
-                                        className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                        className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -345,7 +345,7 @@ export default function Users({ users, filters }: Props) {
                                             required
                                             value={addForm.data.username}
                                             onChange={(e) => addForm.setData('username', e.target.value)}
-                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                         />
                                     </div>
                                     <div>
@@ -355,7 +355,7 @@ export default function Users({ users, filters }: Props) {
                                             required
                                             value={addForm.data.email}
                                             onChange={(e) => addForm.setData('email', e.target.value)}
-                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                         />
                                     </div>
                                 </div>
@@ -366,7 +366,7 @@ export default function Users({ users, filters }: Props) {
                                         placeholder="Leave blank to auto-generate temporary password"
                                         value={addForm.data.password}
                                         onChange={(e) => addForm.setData('password', e.target.value)}
-                                        className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                        className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                     />
                                     {addForm.errors.password && <div className="text-xs text-rose-500 mt-1">{addForm.errors.password}</div>}
                                 </div>
@@ -377,7 +377,7 @@ export default function Users({ users, filters }: Props) {
                                             type="text" 
                                             value={addForm.data.department}
                                             onChange={(e) => addForm.setData('department', e.target.value)}
-                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                         />
                                     </div>
                                     <div>
@@ -386,7 +386,7 @@ export default function Users({ users, filters }: Props) {
                                             type="text" 
                                             value={addForm.data.designation}
                                             onChange={(e) => addForm.setData('designation', e.target.value)}
-                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                         />
                                     </div>
                                 </div>
@@ -396,7 +396,7 @@ export default function Users({ users, filters }: Props) {
                                         id="isAdmin" 
                                         checked={addForm.data.is_admin}
                                         onChange={(e) => addForm.setData('is_admin', e.target.checked)}
-                                        className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#C88B37] focus:ring-[#C88B37]"
+                                        className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#2788E8] focus:ring-[#2788E8]"
                                     />
                                     <label htmlFor="isAdmin" className="text-sm font-medium">Assign Administrator Privileges</label>
                                 </div>
@@ -411,7 +411,7 @@ export default function Users({ users, filters }: Props) {
                                     <button 
                                         type="submit" 
                                         disabled={addForm.processing}
-                                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#C88B37] to-[#AA7122] px-5 py-2 text-sm font-bold text-white shadow-md shadow-[#C88B37]/20 hover:brightness-110 transition-all duration-200"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#2788E8] to-[#32C2A3] px-5 py-2 text-sm font-bold text-white shadow-md shadow-[#2788E8]/20 hover:brightness-110 transition-all duration-200"
                                     >
                                         {addForm.processing && <Loader2 className="h-4 w-4 animate-spin" />}
                                         Create
@@ -435,7 +435,7 @@ export default function Users({ users, filters }: Props) {
                                         required
                                         value={editForm.data.name}
                                         onChange={(e) => editForm.setData('name', e.target.value)}
-                                        className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                        className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -446,7 +446,7 @@ export default function Users({ users, filters }: Props) {
                                             required
                                             value={editForm.data.username}
                                             onChange={(e) => editForm.setData('username', e.target.value)}
-                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                         />
                                     </div>
                                     <div>
@@ -456,7 +456,7 @@ export default function Users({ users, filters }: Props) {
                                             required
                                             value={editForm.data.email}
                                             onChange={(e) => editForm.setData('email', e.target.value)}
-                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                         />
                                     </div>
                                 </div>
@@ -467,7 +467,7 @@ export default function Users({ users, filters }: Props) {
                                         placeholder="Leave blank to keep current password"
                                         value={editForm.data.password}
                                         onChange={(e) => editForm.setData('password', e.target.value)}
-                                        className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                        className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                     />
                                     {editForm.errors.password && <div className="text-xs text-rose-500 mt-1">{editForm.errors.password}</div>}
                                 </div>
@@ -478,7 +478,7 @@ export default function Users({ users, filters }: Props) {
                                             type="text" 
                                             value={editForm.data.department}
                                             onChange={(e) => editForm.setData('department', e.target.value)}
-                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                         />
                                     </div>
                                     <div>
@@ -487,7 +487,7 @@ export default function Users({ users, filters }: Props) {
                                             type="text" 
                                             value={editForm.data.designation}
                                             onChange={(e) => editForm.setData('designation', e.target.value)}
-                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#C88B37] focus:ring-1 focus:ring-[#C88B37] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
+                                            className="w-full mt-1 p-2 rounded-lg border border-neutral-200 bg-neutral-50 text-sm focus:border-[#2788E8] focus:ring-1 focus:ring-[#2788E8] outline-none dark:border-white/5 dark:bg-[#0A0A0A]" 
                                         />
                                     </div>
                                 </div>
@@ -497,7 +497,7 @@ export default function Users({ users, filters }: Props) {
                                         id="editIsAdmin" 
                                         checked={editForm.data.is_admin}
                                         onChange={(e) => editForm.setData('is_admin', e.target.checked)}
-                                        className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#C88B37] focus:ring-[#C88B37]"
+                                        className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#2788E8] focus:ring-[#2788E8]"
                                     />
                                     <label htmlFor="editIsAdmin" className="text-sm font-medium">Assign Administrator Privileges</label>
                                 </div>
@@ -512,7 +512,7 @@ export default function Users({ users, filters }: Props) {
                                     <button 
                                         type="submit" 
                                         disabled={editForm.processing}
-                                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#C88B37] to-[#AA7122] px-5 py-2 text-sm font-bold text-white shadow-md shadow-[#C88B37]/20 hover:brightness-110 transition-all duration-200"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#2788E8] to-[#32C2A3] px-5 py-2 text-sm font-bold text-white shadow-md shadow-[#2788E8]/20 hover:brightness-110 transition-all duration-200"
                                     >
                                         {editForm.processing && <Loader2 className="h-4 w-4 animate-spin" />}
                                         Save Changes
@@ -535,7 +535,7 @@ interface ActionButtonProps {
     colorClass?: string;
 }
 
-function ActionButton({ title, icon: Icon, onClick, colorClass = "text-slate-500 hover:text-[#C88B37] dark:text-slate-400 hover:border-[#C88B37]/35 dark:hover:bg-white/5 hover:bg-[#C88B37]/10" }: ActionButtonProps) {
+function ActionButton({ title, icon: Icon, onClick, colorClass = "text-slate-500 hover:text-[#2788E8] dark:text-slate-400 hover:border-[#2788E8]/35 dark:hover:bg-white/5 hover:bg-[#2788E8]/10" }: ActionButtonProps) {
     return (
         <div className="relative group/tooltip inline-block">
             <button 

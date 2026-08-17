@@ -81,15 +81,15 @@ export default function AdminLayout({ children, breadcrumbs = [] }: AdminLayoutP
                     {/* Header Logo */}
                     <div className="h-16 px-5 border-b border-slate-200/60 dark:border-white/5 flex items-center justify-between overflow-hidden">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C88B37] to-[#E5A93B] flex items-center justify-center text-black shadow-md shadow-[#C88B37]/20 transition-all duration-300 hover:scale-105">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2788E8] to-[#32C2A3] flex items-center justify-center text-white shadow-md shadow-[#2788E8]/20 transition-all duration-300 hover:scale-105">
                                 <Shield className="w-5 h-5 animate-pulse" />
                             </div>
                             {!isCollapsed && (
                                 <div className="flex flex-col select-none">
-                                    <span className="font-bold text-sm tracking-tight text-neutral-900 dark:text-white">
-                                        JK<span className="text-[#C88B37]">Chat</span>
+                                    <span className="font-bold text-sm tracking-tight text-[#20324A] dark:text-white">
+                                        Dia<span className="text-[#2788E8]">Chat</span>
                                     </span>
-                                    <span className="text-[10px] font-semibold text-[#C88B37] uppercase tracking-widest leading-none">
+                                    <span className="text-[10px] font-semibold text-[#2788E8] uppercase tracking-widest leading-none">
                                         Admin Panel
                                     </span>
                                 </div>
@@ -313,18 +313,18 @@ function SidebarLink({ name, icon: Icon, active, isCollapsed, badge = null, badg
         <span 
             className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative ${
                 active 
-                    ? 'bg-gradient-to-r from-[#C88B37] to-[#E5A93B] text-black font-bold shadow-md shadow-[#C88B37]/15 scale-[1.02]' 
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-[#C88B37]/10 hover:text-[#C88B37] dark:hover:bg-white/5 dark:hover:text-white hover:translate-x-1'
+                    ? 'bg-gradient-to-r from-[#2788E8] to-[#32C2A3] text-white font-bold shadow-md shadow-[#2788E8]/15 scale-[1.02]' 
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-[#EAF4FF] hover:text-[#2788E8] dark:hover:bg-white/5 dark:hover:text-white hover:translate-x-1'
             }`}
         >
-            <Icon className={`w-4 h-4 shrink-0 transition-transform duration-300 ${active ? 'text-black' : 'text-slate-500 dark:text-slate-400'}`} />
+            <Icon className={`w-4 h-4 shrink-0 transition-transform duration-300 ${active ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
             {!isCollapsed && (
                 <span className="ml-3 truncate animate-in fade-in duration-200">
                     {name}
                 </span>
             )}
             {!isCollapsed && badge && (
-                <span className={`ml-auto px-1.5 py-0.5 text-[9px] font-bold rounded-md leading-none ${active ? 'bg-black/20 text-black' : badgeColor}`}>
+                <span className={`ml-auto px-1.5 py-0.5 text-[9px] font-bold rounded-md leading-none ${active ? 'bg-white/20 text-white' : badgeColor}`}>
                     {badge}
                 </span>
             )}
@@ -346,7 +346,7 @@ function SidebarLink({ name, icon: Icon, active, isCollapsed, badge = null, badg
 function AlertItem({ title, body, type, time }: { title: string, body: string, type: string, time: string }) {
     const getTheme = () => {
         switch (type) {
-            case 'friend': return 'bg-[#C88B37]/10 dark:bg-[#C88B37]/15 text-[#C88B37]';
+            case 'friend': return 'bg-[#2788E8]/10 dark:bg-[#2788E8]/15 text-[#2788E8]';
             case 'security': return 'bg-red-50 dark:bg-red-950/20 text-red-600';
             default: return 'bg-slate-50 dark:bg-slate-800 text-slate-500';
         }

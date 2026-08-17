@@ -69,7 +69,7 @@ export default function SettingsPage({ settings }: Props) {
                     <button 
                         type="submit" 
                         disabled={form.processing}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#C88B37] to-[#AA7122] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#C88B37]/20 hover:brightness-110 hover:scale-[1.02] transition-all duration-300"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#2788E8] to-[#AA7122] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#2788E8]/20 hover:brightness-110 hover:scale-[1.02] transition-all duration-300"
                     >
                         {form.processing ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -84,9 +84,9 @@ export default function SettingsPage({ settings }: Props) {
                 <div className="grid gap-6 md:grid-cols-2">
                     
                     {/* General Setup */}
-                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-6 shadow-sm dark:border-white/5 space-y-4 hover:border-[#C88B37]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-6 shadow-sm dark:border-white/5 space-y-4 hover:border-[#2788E8]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                         <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 border-b border-neutral-100 dark:border-white/5 pb-3">
-                            <Server className="h-5 w-5 text-[#C88B37]" />
+                            <Server className="h-5 w-5 text-[#2788E8]" />
                             General Application Setup
                         </h2>
                         
@@ -97,7 +97,7 @@ export default function SettingsPage({ settings }: Props) {
                                 required
                                 value={form.data.app_name}
                                 onChange={(e) => form.setData('app_name', e.target.value)}
-                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
+                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
                             />
                         </div>
 
@@ -106,7 +106,7 @@ export default function SettingsPage({ settings }: Props) {
                             <select 
                                 value={form.data.backup_schedule}
                                 onChange={(e) => form.setData('backup_schedule', e.target.value)}
-                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                             >
                                 <option value="manual">Manual Archive Sync Only</option>
                                 <option value="daily">Daily Cron Sync</option>
@@ -121,7 +121,7 @@ export default function SettingsPage({ settings }: Props) {
                                 id="maintenanceMode" 
                                 checked={form.data.maintenance_mode}
                                 onChange={(e) => form.setData('maintenance_mode', e.target.checked)}
-                                className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#C88B37] focus:ring-[#C88B37]"
+                                className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#2788E8] focus:ring-[#2788E8]"
                             />
                             <label htmlFor="maintenanceMode" className="text-sm font-medium">
                                 Maintenance Lock (Lock active chat features for users)
@@ -130,14 +130,14 @@ export default function SettingsPage({ settings }: Props) {
                     </div>
 
                     {/* Encryption & Security Policies */}
-                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-6 shadow-sm dark:border-white/5 space-y-4 hover:border-[#C88B37]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-6 shadow-sm dark:border-white/5 space-y-4 hover:border-[#2788E8]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                         <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 border-b border-neutral-100 dark:border-white/5 pb-3">
-                            <Shield className="h-5 w-5 text-[#C88B37]" />
+                            <Shield className="h-5 w-5 text-[#2788E8]" />
                             Security & Cryptographic Policies
                         </h2>
 
-                        <div className="flex items-start gap-3 p-3 bg-[#C88B37]/10 rounded-xl text-xs text-[#C88B37] dark:bg-[#C88B37]/15 dark:text-[#C88B37] border border-[#C88B37]/10 backdrop-blur-md">
-                            <Shield className="h-4.5 w-4.5 shrink-0 mt-0.5 text-[#C88B37]" />
+                        <div className="flex items-start gap-3 p-3 bg-[#2788E8]/10 rounded-xl text-xs text-[#2788E8] dark:bg-[#2788E8]/15 dark:text-[#2788E8] border border-[#2788E8]/10 backdrop-blur-md">
+                            <Shield className="h-4.5 w-4.5 shrink-0 mt-0.5 text-[#2788E8]" />
                             <div>
                                 <div className="font-semibold mb-0.5">End-to-End Chat Encryption (E2EE)</div>
                                 When active, all message payloads and file contents are fully encrypted client-side using AES-256 keys. Cyphertexts are uploaded to database. 
@@ -150,7 +150,7 @@ export default function SettingsPage({ settings }: Props) {
                                 id="privacyMode" 
                                 checked={form.data.privacy_mode_enabled}
                                 onChange={(e) => form.setData('privacy_mode_enabled', e.target.checked)}
-                                className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#C88B37] focus:ring-[#C88B37]"
+                                className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#2788E8] focus:ring-[#2788E8]"
                             />
                             <label htmlFor="privacyMode" className="text-sm font-medium">
                                 Enforce Privacy Policy (Hide chat transcripts from Administrators)
@@ -163,7 +163,7 @@ export default function SettingsPage({ settings }: Props) {
                                 id="adminToastNotifications" 
                                 checked={(form.data as any).admin_toast_notifications_enabled !== false}
                                 onChange={(e) => form.setData('admin_toast_notifications_enabled' as any, e.target.checked)}
-                                className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#C88B37] focus:ring-[#C88B37]"
+                                className="rounded border-neutral-350 dark:border-white/10 dark:bg-[#0A0A0A] text-[#2788E8] focus:ring-[#2788E8]"
                             />
                             <label htmlFor="adminToastNotifications" className="text-sm font-medium">
                                 Enable Real-time Admin Toast Notifications (Live popups for Login, Logout, App Uninstall & Soft Deletions)
@@ -172,9 +172,9 @@ export default function SettingsPage({ settings }: Props) {
                     </div>
 
                     {/* Upload Limits */}
-                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-6 shadow-sm dark:border-white/5 space-y-4 hover:border-[#C88B37]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-6 shadow-sm dark:border-white/5 space-y-4 hover:border-[#2788E8]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                         <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 border-b border-neutral-100 dark:border-white/5 pb-3">
-                            <FileUp className="h-5 w-5 text-[#C88B37]" />
+                            <FileUp className="h-5 w-5 text-[#2788E8]" />
                             File Size & Format Policies
                         </h2>
 
@@ -185,7 +185,7 @@ export default function SettingsPage({ settings }: Props) {
                                 required
                                 value={form.data.file_upload_limit}
                                 onChange={(e) => form.setData('file_upload_limit', Number(e.target.value))}
-                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
+                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
                             />
                             <span className="text-xxs text-neutral-400 mt-1 block">
                                 Configured value: {roundBytesToMB(form.data.file_upload_limit)} MB
@@ -198,15 +198,15 @@ export default function SettingsPage({ settings }: Props) {
                                 rows={3}
                                 value={form.data.allowed_file_types}
                                 onChange={(e) => form.setData('allowed_file_types', e.target.value)}
-                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                             />
                         </div>
                     </div>
 
                     {/* SMTP Configuration */}
-                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-6 shadow-sm dark:border-white/5 space-y-4 hover:border-[#C88B37]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                    <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-6 shadow-sm dark:border-white/5 space-y-4 hover:border-[#2788E8]/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                         <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 border-b border-neutral-100 dark:border-white/5 pb-3">
-                            <Mail className="h-5 w-5 text-[#C88B37]" />
+                            <Mail className="h-5 w-5 text-[#2788E8]" />
                             SMTP Email Delivery Service
                         </h2>
 
@@ -217,7 +217,7 @@ export default function SettingsPage({ settings }: Props) {
                                     type="text" 
                                     value={form.data.smtp_host}
                                     onChange={(e) => form.setData('smtp_host', e.target.value)}
-                                    className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
+                                    className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
                                 />
                             </div>
                             <div>
@@ -226,7 +226,7 @@ export default function SettingsPage({ settings }: Props) {
                                     type="number" 
                                     value={form.data.smtp_port}
                                     onChange={(e) => form.setData('smtp_port', Number(e.target.value))}
-                                    className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
+                                    className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
                                 />
                             </div>
                         </div>
@@ -238,7 +238,7 @@ export default function SettingsPage({ settings }: Props) {
                                     type="text" 
                                     value={form.data.smtp_username}
                                     onChange={(e) => form.setData('smtp_username', e.target.value)}
-                                    className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
+                                    className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
                                 />
                             </div>
                             <div>
@@ -247,7 +247,7 @@ export default function SettingsPage({ settings }: Props) {
                                     type="password" 
                                     value={form.data.smtp_password}
                                     onChange={(e) => form.setData('smtp_password', e.target.value)}
-                                    className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
+                                    className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
                                 />
                             </div>
                         </div>
@@ -258,7 +258,7 @@ export default function SettingsPage({ settings }: Props) {
                                 type="text" 
                                 value={form.data.smtp_encryption}
                                 onChange={(e) => form.setData('smtp_encryption', e.target.value)}
-                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#C88B37]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#C88B37]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
+                                className="w-full mt-1 p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs outline-none focus:border-[#2788E8]/80 focus:shadow-[0_0_15px_rgba(200,139,55,0.15)] focus:ring-4 focus:ring-[#2788E8]/10 dark:border-white/5 dark:bg-[#0A0A0A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" 
                             />
                         </div>
                     </div>
