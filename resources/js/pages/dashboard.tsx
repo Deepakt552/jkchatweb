@@ -2321,7 +2321,9 @@ export default function Dashboard() {
                             <div className="flex flex-1 flex-col h-full overflow-hidden min-w-0">
 
                                 {/* Chat View Header: Floating Liquid Glass Banner */}
-                                <div className={`flex items-center justify-between px-6 py-3 border-b relative z-30 transition-all duration-300 ${isDark ? 'border-white/5 bg-[#0F0F0F]' : 'border-neutral-200 bg-white'
+                                <div
+                                    style={{ zIndex: 50 }}
+                                    className={`flex items-center justify-between px-6 py-3 border-b relative z-50 transition-all duration-300 ${isDark ? 'border-white/5 bg-[#0F0F0F]' : 'border-neutral-200 bg-white'
                                     }`}>
                                     <div className="flex items-center gap-3">
                                         {/* Mobile Back Navigation Arrow */}
@@ -2390,7 +2392,7 @@ export default function Dashboard() {
                                             <Search className="h-4 w-4" />
                                         </button>
 
-                                        <div className="relative z-50">
+                                        <div className="relative z-50" style={{ zIndex: 50 }}>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -2403,7 +2405,10 @@ export default function Dashboard() {
                                             </button>
 
                                             {showThreeDotMenu && (
-                                                <div className="absolute right-0 mt-2 w-52 rounded-xl border dark:border-white/10 border-neutral-200 dark:bg-[#161616]/98 bg-white shadow-2xl z-50 py-1.5 backdrop-blur-xl">
+                                                <div
+                                                    style={{ zIndex: 100 }}
+                                                    className="absolute right-0 mt-2 w-52 rounded-xl border dark:border-white/10 border-neutral-200 dark:bg-[#161616]/98 bg-white shadow-2xl z-[100] py-1.5 backdrop-blur-xl"
+                                                >
                                                     <button
                                                         onClick={() => {
                                                             setShowContactSidebar(prev => !prev);
@@ -2476,7 +2481,10 @@ export default function Dashboard() {
 
                                 {/* Message Search Bar */}
                                 {showMessageSearch && (
-                                    <div className="px-6 py-2 border-b dark:border-white/5 border-neutral-200 flex items-center gap-2 dark:bg-[#0F0F0F] bg-white relative z-10">
+                                    <div
+                                        style={{ zIndex: 40 }}
+                                        className="px-6 py-2 border-b dark:border-white/5 border-neutral-200 flex items-center gap-2 dark:bg-[#0F0F0F] bg-white relative z-40"
+                                    >
                                         <div className="flex-1 relative flex h-9 items-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.02] bg-neutral-50 px-3.5 focus-within:border-[#2788E8]/60 focus-within:ring-1 focus-within:ring-[#2788E8]/60 focus-within:shadow-[0_0_10px_rgba(200,139,55,0.1)] transition-all duration-300">
                                             <Search className="h-3.5 w-3.5 text-neutral-400 mr-2" />
                                             <input
