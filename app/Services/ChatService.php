@@ -51,7 +51,24 @@ class ChatService
             ]);
         }
 
-        return $this->messageRepository->getMessages($conversationId, $limit, $beforeId, $member->cleared_at, $sinceId);
+        $messages = $this->messageRepository->getMessages($conversationId, $limit, $beforeId, $member->cleared_at, $sinceId);
+
+        // Auto-mark un-delivered incoming messages as delivered for this user
+        foreach ($messages as $msg) {
+            if ($msg->sender_id !== $userId) {
+                $hasDelivered = $msg->reads && $msg->reads->where('user_id', $userId)->whereNotNull('delivered_at')->isNotEmpty();
+                if (!$hasDelivered) {
+                    try {
+                        $this->messageRepository->markAsDelivered($msg->id, $userId);
+                        broadcast(new MessageRead($msg->id, $userId, 'delivered', $conversationId))->toOthers();
+                    } catch (\Throwable $e) {
+                        // Suppress individual delivery receipt errors
+                    }
+                }
+            }
+        }
+
+        return $messages;
     }
 
     public function sendMessage(int $senderId, int $conversationId, string $type, string $body, ?string $iv, ?int $replyToMessageId = null): Message

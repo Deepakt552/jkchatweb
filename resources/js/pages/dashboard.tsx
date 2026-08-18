@@ -929,7 +929,21 @@ export default function Dashboard() {
                 };
 
                 setMessages(prev => {
-                    if (prev.some(m => String(m.id) === String(localMsg.id))) return prev;
+                    const existingIdx = prev.findIndex(m => String(m.id) === String(localMsg.id));
+                    if (existingIdx !== -1) {
+                        const existing = prev[existingIdx];
+                        const finalStatus = (existing.status === 'read' || existing.status === 'delivered') ? existing.status : localMsg.status;
+                        const finalReadBy = (existing.read_by && existing.read_by.length > 0) ? existing.read_by : localMsg.read_by;
+                        const finalDeliveredBy = (existing.delivered_by && existing.delivered_by.length > 0) ? existing.delivered_by : localMsg.delivered_by;
+                        const updated = [...prev];
+                        updated[existingIdx] = {
+                            ...localMsg,
+                            status: finalStatus,
+                            read_by: finalReadBy,
+                            delivered_by: finalDeliveredBy,
+                        };
+                        return updated;
+                    }
                     return [...prev, localMsg];
                 });
 
@@ -1785,6 +1799,22 @@ export default function Dashboard() {
                         };
                     }
                     return m;
+                }));
+
+                setConversations(prev => prev.map(c => {
+                    if (c.id === conv.id && c.messages && c.messages.length > 0) {
+                        const lastMsg = c.messages[0];
+                        if (Number(lastMsg.id) <= targetMsgId || String(lastMsg.id) === String(targetMsgId)) {
+                            return {
+                                ...c,
+                                messages: [{
+                                    ...lastMsg,
+                                    status: status === 'read' ? 'read' : (lastMsg.status === 'read' ? 'read' : 'delivered')
+                                }]
+                            };
+                        }
+                    }
+                    return c;
                 }));
             };
 
