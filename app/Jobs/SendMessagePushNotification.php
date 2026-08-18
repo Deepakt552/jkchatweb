@@ -54,14 +54,19 @@ class SendMessagePushNotification implements ShouldQueue
                 continue;
             }
 
-            // Count total unread messages across ALL conversations for badge
+            // Count total unread CONVERSATIONS (distinct chats) for badge
             try {
-                $totalUnread = DB::table('messages')
+                $unreadChats = DB::table('messages')
                     ->join('conversation_members', function ($join) use ($recipientId) {
                         $join->on('messages.conversation_id', '=', 'conversation_members.conversation_id')
                              ->where('conversation_members.user_id', '=', $recipientId);
                     })
                     ->where('messages.sender_id', '!=', $recipientId)
+                    ->where('messages.is_deleted', false)
+                    ->where(function ($q) {
+                        $q->whereNull('conversation_members.cleared_at')
+                          ->orWhereColumn('messages.created_at', '>', 'conversation_members.cleared_at');
+                    })
                     ->whereNotExists(function ($q) use ($recipientId) {
                         $q->select(DB::raw(1))
                           ->from('message_reads')
@@ -69,13 +74,14 @@ class SendMessagePushNotification implements ShouldQueue
                           ->where('message_reads.user_id', $recipientId)
                           ->whereNotNull('message_reads.read_at');
                     })
-                    ->count();
+                    ->distinct('messages.conversation_id')
+                    ->count('messages.conversation_id');
             } catch (\Throwable $e) {
                 Log::warning('Badge count query failed, using fallback', ['error' => $e->getMessage()]);
-                $totalUnread = 1;
+                $unreadChats = 1;
             }
 
-            $badgeCount = max(1, (int) $totalUnread);
+            $badgeCount = max(1, (int) $unreadChats);
 
             // Send to each unique token
             $seenTokens = [];
