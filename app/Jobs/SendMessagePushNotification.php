@@ -104,9 +104,9 @@ class SendMessagePushNotification implements ShouldQueue
             $notificationBody = $this->body;
         }
 
-        // Add notification block for OS system-tray delivery when app is closed
+        // Android: data-only message — Flutter background handler shows the notification.
+        // iOS: APNs alert block is kept for reliable background/terminated delivery.
         $message = CloudMessage::withTarget('token', $token)
-            ->withNotification(Notification::create($this->senderName, $notificationBody))
             ->withData([
                 'type'           => 'new_message',
                 'chat_id'        => (string) $this->conversationId,
