@@ -10,9 +10,15 @@ class Device extends Model
     protected $fillable = [
         'user_id',
         'device_identifier',
+        'hardware_id',
+        'ip_address',
+        'user_agent',
         'name',
+        'device_model',
+        'brand',
         'token',
         'os',
+        'os_version',
         'is_verified',
         'last_active_at',
     ];

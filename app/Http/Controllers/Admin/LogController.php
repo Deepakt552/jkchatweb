@@ -21,11 +21,16 @@ class LogController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(15, ['*'], 'audits');
 
+        $activeDevices = Device::with('user:id,name,username,email,avatar_url')
+            ->orderBy('last_active_at', 'desc')
+            ->paginate(15, ['*'], 'devices');
+
         $activeDevicesCount = Device::count();
 
         return Inertia::render('admin/Security', [
             'loginHistory' => $loginHistory,
             'auditLogs' => $auditLogs,
+            'activeDevices' => $activeDevices,
             'activeDevicesCount' => $activeDevicesCount,
         ]);
     }

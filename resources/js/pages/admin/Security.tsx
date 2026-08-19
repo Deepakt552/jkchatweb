@@ -45,13 +45,31 @@ interface Pagination<T> {
     links: any[];
 }
 
+interface DeviceItem {
+    id: number;
+    user_id: number;
+    device_identifier: string;
+    hardware_id: string | null;
+    name: string;
+    device_model: string | null;
+    brand: string | null;
+    os: string;
+    os_version: string | null;
+    ip_address: string | null;
+    user_agent: string | null;
+    is_verified: boolean;
+    last_active_at: string | null;
+    user?: { name: string; email: string; avatar_url: string | null } | null;
+}
+
 interface Props {
     loginHistory: Pagination<LoginLog>;
     auditLogs: Pagination<AuditLog>;
+    activeDevices?: Pagination<DeviceItem>;
     activeDevicesCount: number;
 }
 
-export default function Security({ loginHistory, auditLogs, activeDevicesCount }: Props) {
+export default function Security({ loginHistory, auditLogs, activeDevices, activeDevicesCount }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Security & Audits" />
@@ -61,7 +79,7 @@ export default function Security({ loginHistory, auditLogs, activeDevicesCount }
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Security & Audits</h1>
-                        <p className="text-neutral-500">Monitor organizational authentication patterns and administrative logs.</p>
+                        <p className="text-neutral-500">Monitor organizational authentication patterns, registered hardware fleet, and administrative logs.</p>
                     </div>
 
                     <div className="rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md p-4 shadow-sm dark:border-white/5 flex items-center gap-3 hover:border-[#2788E8]/15 hover:scale-[1.01] transition-all duration-300">
@@ -72,6 +90,66 @@ export default function Security({ loginHistory, auditLogs, activeDevicesCount }
                         </div>
                     </div>
                 </div>
+
+                {/* Device Hardware Fleet */}
+                {activeDevices && activeDevices.data && (
+                    <div className="space-y-4">
+                        <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                            <Smartphone className="h-5 w-5 text-[#2788E8]" />
+                            Registered Devices & Hardware Fleet
+                        </h2>
+                        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 dark:bg-[#0F0F0F]/65 backdrop-blur-md shadow-sm dark:border-white/5 hover:border-[#2788E8]/10 transition-all duration-300">
+                            <table className="w-full border-collapse text-left text-xs">
+                                <thead className="border-b border-neutral-200 bg-neutral-50 dark:border-white/5 dark:bg-[#0A0A0A]">
+                                    <tr>
+                                        <th className="px-6 py-3.5 font-semibold text-neutral-500">User</th>
+                                        <th className="px-6 py-3.5 font-semibold text-neutral-500">Device Name & Hardware ID</th>
+                                        <th className="px-6 py-3.5 font-semibold text-neutral-500">Model & Brand</th>
+                                        <th className="px-6 py-3.5 font-semibold text-neutral-500">OS & Version</th>
+                                        <th className="px-6 py-3.5 font-semibold text-neutral-500">IP Address</th>
+                                        <th className="px-6 py-3.5 font-semibold text-neutral-500">Last Active</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
+                                    {activeDevices.data.map((dev) => (
+                                        <tr key={dev.id} className="hover:bg-neutral-50/50 dark:hover:bg-white/5 transition-all duration-200">
+                                            <td className="px-6 py-3.5">
+                                                <div className="font-semibold text-slate-800 dark:text-white">
+                                                    {dev.user ? dev.user.name : 'Unknown'}
+                                                </div>
+                                                <div className="text-xxs text-neutral-400">
+                                                    {dev.user?.email}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-3.5">
+                                                <div className="font-medium text-slate-700 dark:text-slate-200">{dev.name}</div>
+                                                <div className="text-xxs font-mono text-neutral-400 truncate max-w-[180px]" title={dev.hardware_id || dev.device_identifier}>
+                                                    ID: {dev.hardware_id || dev.device_identifier}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-3.5">
+                                                <span className="font-semibold text-[#2788E8]">{dev.brand || 'Standard'}</span>
+                                                <div className="text-xxs text-neutral-400">{dev.device_model || 'N/A'}</div>
+                                            </td>
+                                            <td className="px-6 py-3.5">
+                                                <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xxs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-500/20">
+                                                    {dev.os}
+                                                </span>
+                                                {dev.os_version && (
+                                                    <div className="text-xxs text-neutral-400 mt-0.5">{dev.os_version}</div>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-3.5 font-mono text-neutral-500">{dev.ip_address || '—'}</td>
+                                            <td className="px-6 py-3.5 text-neutral-400">
+                                                {dev.last_active_at ? new Date(dev.last_active_at).toLocaleString() : '—'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     

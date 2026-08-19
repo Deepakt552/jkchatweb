@@ -58,73 +58,23 @@ class ApiAuthController extends Controller
             ]);
         }
 
-        // Check if device or IP is already recorded & verified for this user
-        $knownDevice = Device::where('user_id', $user->id)
-            ->where('device_identifier', $request->device_id)
-            ->where('is_verified', true)
-            ->first();
+        // Always require OTP verification for App login
+        $otp = sprintf("%06d", mt_rand(100000, 999999));
+        $user->otp_code = $otp;
+        $user->otp_expires_at = now()->addMinutes(5);
+        $user->save();
 
-        $knownIp = \DB::table('login_history')
-            ->where('user_id', $user->id)
-            ->where('ip_address', $ip)
-            ->where('status', 'success')
-            ->exists();
-
-        $isKnown = ($knownDevice !== null) || $knownIp;
-
-        if (!$isKnown) {
-            // First time login from new device or new IP address: Require OTP email verification
-            $otp = sprintf("%06d", mt_rand(100000, 999999));
-            $user->otp_code = $otp;
-            $user->otp_expires_at = now()->addMinutes(5);
-            $user->save();
-
-            // Send OTP Mail
+        // Send OTP Mail
+        try {
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
-
-            return response()->json([
-                'otp_required' => true,
-                'email' => $user->email,
-                'message' => 'New device or IP detected. An OTP verification code has been sent to your email.',
-            ]);
+        } catch (\Exception $e) {
+            \Log::error("Failed to send OTP email: " . $e->getMessage());
         }
 
-        // Known device/IP - direct login without OTP
-        Device::where('device_identifier', $request->device_id)
-            ->where('user_id', '!=', $user->id)
-            ->delete();
-
-        Device::updateOrCreate(
-            ['user_id' => $user->id, 'device_identifier' => $request->device_id],
-            [
-                'name' => $request->device_name,
-                'os' => $request->os,
-                'token' => $request->push_token,
-                'is_verified' => true,
-                'last_active_at' => now(),
-            ]
-        );
-
-        $this->userService->logLoginAttempt($request->login, $ip, $ua, 'success');
-        $this->userService->logActivity($user->id, "User logged in directly on {$request->device_name} ({$request->os}) from known device/IP");
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
         return response()->json([
-            'otp_required' => false,
-            'token' => $token,
-            'force_password_change' => (bool)$user->force_password_change,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email,
-                'role' => $user->role,
-                'avatar_url' => $user->avatar_url,
-                'about' => $user->about,
-                'privacy_settings' => $user->privacy_settings,
-                'force_password_change' => (bool)$user->force_password_change,
-            ],
+            'otp_required' => true,
+            'email' => $user->email,
+            'message' => 'An OTP verification code has been sent to your email.',
         ]);
     }
 
@@ -179,8 +129,14 @@ class ApiAuthController extends Controller
         Device::updateOrCreate(
             ['user_id' => $user->id, 'device_identifier' => $request->device_id],
             [
-                'name' => $request->device_name,
-                'os' => $request->os,
+                'name' => $request->input('device_name', $request->device_name),
+                'device_model' => $request->input('device_model'),
+                'brand' => $request->input('brand'),
+                'os' => $request->input('os', 'Unknown'),
+                'os_version' => $request->input('os_version'),
+                'hardware_id' => $request->input('hardware_id'),
+                'ip_address' => $ip,
+                'user_agent' => $ua,
                 'token' => $request->push_token,
                 'is_verified' => true,
                 'last_active_at' => now(),
@@ -188,7 +144,7 @@ class ApiAuthController extends Controller
         );
 
         $this->userService->logLoginAttempt($request->login, $ip, $ua, 'success');
-        $this->userService->logActivity($user->id, "User logged in on {$request->device_name} ({$request->os}) after OTP verification");
+        $this->userService->logActivity($user->id, "User logged in on {$request->device_name} ({$request->os}) [{$request->input('device_model')}] after OTP verification");
 
         $token = $user->createToken('api-token')->plainTextToken;
 
@@ -283,13 +239,27 @@ class ApiAuthController extends Controller
     public function logoutRemoteDevice(Request $request)
     {
         $request->validate([
-            'device_id' => 'required|string',
+            'device_id' => 'required',
         ]);
 
         $user = $request->user();
-        $this->userService->logoutDevice($user->id, $request->device_id);
+        $deviceId = (string)$request->device_id;
 
-        return response()->json(['message' => 'Device logged out remotely.']);
+        $device = Device::where('user_id', $user->id)
+            ->where(function($q) use ($deviceId) {
+                $q->where('device_identifier', $deviceId)
+                  ->orWhere('id', $deviceId);
+            })->first();
+
+        if ($device) {
+            $deviceIdentifier = $device->device_identifier;
+            $device->delete();
+            $this->userService->logActivity($user->id, "Logged out device: {$deviceIdentifier}");
+
+            return response()->json(['message' => 'Device logged out remotely.']);
+        }
+
+        return response()->json(['message' => 'Device not found.'], 404);
     }
 
     public function logoutAllDevices(Request $request)
