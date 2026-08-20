@@ -757,28 +757,19 @@ export default function Dashboard() {
             if (response.ok) {
                 const data = await response.json();
 
-                if (!Array.isArray(data)) {
-                    console.warn('Conversations data is not an array:', data);
-                    return;
-                }
-
                 // Decrypt last message preview inside conversations
                 const decryptedList = data.map((conv: Conversation) => {
                     if (conv.messages && conv.messages.length > 0) {
                         const lastMsg = conv.messages[0];
                         if (lastMsg.type === 'text' && lastMsg.body && (lastMsg as any).iv) {
-                            try {
-                                const chatKey = deriveConversationKey(conv.id);
-                                return {
-                                    ...conv,
-                                    messages: [{
-                                        ...lastMsg,
-                                        body: decryptText(lastMsg.body, chatKey, (lastMsg as any).iv)
-                                    }]
-                                };
-                            } catch (_) {
-                                return conv;
-                            }
+                            const chatKey = deriveConversationKey(conv.id);
+                            return {
+                                ...conv,
+                                messages: [{
+                                    ...lastMsg,
+                                    body: decryptText(lastMsg.body, chatKey, (lastMsg as any).iv)
+                                }]
+                            };
                         }
                     }
                     return conv;
@@ -2027,14 +2018,11 @@ export default function Dashboard() {
         });
     }, [conversations]);
 
-    // Load initial conversations, friends, and pending requests on mount & keep fresh
+    // Periodic presence heartbeat: refresh conversations every 45s to keep online status fresh
     useEffect(() => {
-        fetchConversations();
-        fetchFriends();
-        fetchPendingRequests();
         const interval = setInterval(() => {
             fetchConversations();
-        }, 30000);
+        }, 45000);
         return () => clearInterval(interval);
     }, []);
 

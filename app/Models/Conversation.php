@@ -55,21 +55,17 @@ class Conversation extends Model
         return $this->hasMany(ChatSoftDeletion::class);
     }
 
+    /**
+     * Return the admin/creator member for group conversations.
+     */
     public function getCreatorAttribute(): ?array
     {
         if ($this->type !== 'group') return null;
-        try {
-            $members = $this->relationLoaded('members') ? $this->members : $this->members()->get();
-            $admin = $members->first(function ($m) {
-                return (isset($m->pivot) && $m->pivot->role === 'admin') || ($m->role ?? null) === 'admin';
-            });
-            if (!$admin) return null;
-            return [
-                'id'   => (int)$admin->id,
-                'name' => (string)$admin->name,
-            ];
-        } catch (\Throwable $e) {
-            return null;
-        }
+        $admin = $this->members->firstWhere('pivot.role', 'admin');
+        if (!$admin) return null;
+        return [
+            'id'   => $admin->id,
+            'name' => $admin->name,
+        ];
     }
 }
