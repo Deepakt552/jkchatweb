@@ -469,9 +469,46 @@ class ApiChatController extends Controller
             ]);
         }
 
+        $conv->touch();
         $conv->load('members');
         return response()->json([
             'message' => 'Members added successfully.',
+            'conversation' => $conv,
+        ]);
+    }
+
+    public function updateMemberRole(Request $request, $id, $memberId)
+    {
+        $request->validate([
+            'role' => 'required|in:admin,member',
+        ]);
+
+        $caller = $request->user();
+        $conversationId = (int)$id;
+        $targetUserId = (int)$memberId;
+
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups support roles.'], 400);
+        }
+
+        $callerMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $caller->id)
+            ->first();
+
+        if (!$callerMember || $callerMember->role !== 'admin') {
+            return response()->json(['message' => 'Only group admins can update roles.'], 403);
+        }
+
+        \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $targetUserId)
+            ->update(['role' => $request->role]);
+
+        $conv->touch();
+        $conv->load('members');
+
+        return response()->json([
+            'message' => 'Member role updated successfully.',
             'conversation' => $conv,
         ]);
     }
