@@ -32,6 +32,10 @@ interface User {
     is_admin?: boolean;
     privacy_settings?: {
         last_seen_visibility?: string;
+        custom_tabs?: any;
+        pinned_conversations?: any;
+        muted_conversations?: any;
+        [key: string]: any;
     };
 }
 
@@ -44,6 +48,7 @@ interface Message {
     body: string;
     is_edited: boolean;
     is_deleted: boolean;
+    status?: string;
     created_at: string;
     attachments?: any[];
     // Delivery/read receipt tracking
@@ -694,7 +699,6 @@ export default function Dashboard() {
             if (response.ok) {
                 const updatedConv = await response.json();
                 setConversations(prev => prev.map(c => c.id === updatedConv.id ? { ...c, ...updatedConv } : c));
-                setActiveConversation(prev => prev && prev.id === updatedConv.id ? { ...prev, ...updatedConv } : prev);
             }
         } catch (e) {
             console.error('Failed to update group details:', e);
@@ -721,7 +725,6 @@ export default function Dashboard() {
             if (response.ok) {
                 const updatedConv = await response.json();
                 setConversations(prev => prev.map(c => c.id === updatedConv.id ? { ...c, ...updatedConv } : c));
-                setActiveConversation(prev => prev && prev.id === updatedConv.id ? { ...prev, ...updatedConv } : prev);
             }
         } catch (e) {
             console.error('Failed to upload group avatar:', e);
@@ -1567,10 +1570,9 @@ export default function Dashboard() {
                 new Notification(title, {
                     body: body,
                     icon: '/notify-icon.png',
-                    image: '/notify-icon.png',
                     badge: '/notify-icon.png',
                     silent: false
-                });
+                } as any);
             } catch (err) {
                 console.error('Error displaying HTML5 notification:', err);
             }

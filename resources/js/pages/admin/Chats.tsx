@@ -106,7 +106,7 @@ export default function Chats({ conversations, privacyMode, tab, filters, stats 
     useEffect(() => {
         if (!liveSync) return;
         const interval = setInterval(() => {
-            router.reload({ preserveScroll: true, preserveState: true });
+            router.reload({ preserveScroll: true, preserveState: true } as any);
         }, 4000);
         return () => clearInterval(interval);
     }, [liveSync]);

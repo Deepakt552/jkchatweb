@@ -54,7 +54,15 @@ export default function Users({ users, filters }: Props) {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
 
-    const addForm = useForm({
+    const addForm = useForm<{
+        name: string;
+        email: string;
+        username: string;
+        department: string;
+        designation: string;
+        is_admin: boolean;
+        password: string;
+    }>({
         name: '',
         email: '',
         username: '',
@@ -64,7 +72,15 @@ export default function Users({ users, filters }: Props) {
         password: '',
     });
 
-    const editForm = useForm({
+    const editForm = useForm<{
+        name: string;
+        email: string;
+        username: string;
+        department: string;
+        designation: string;
+        is_admin: boolean;
+        password: string;
+    }>({
         name: '',
         email: '',
         username: '',
