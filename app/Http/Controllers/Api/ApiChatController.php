@@ -23,11 +23,18 @@ class ApiChatController extends Controller
 
     public function conversations(Request $request)
     {
-        // ?since=ISO8601 → return only conversations updated after this timestamp (delta sync)
-        $since = $request->input('since');
-        return response()->json(
-            $this->chatService->getConversations($request->user()->id, $since)
-        );
+        try {
+            $user = $request->user();
+            if (!$user) {
+                return response()->json([], 200);
+            }
+            $since = $request->input('since');
+            $convs = $this->chatService->getConversations($user->id, $since);
+            return response()->json($convs);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('ApiChatController conversations error: ' . $e->getMessage());
+            return response()->json([]);
+        }
     }
 
     public function messages(Request $request, $conversationId)

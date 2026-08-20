@@ -88,73 +88,74 @@ class EloquentConversationRepository implements ConversationRepositoryInterface
 
     public function getUserConversations(int $userId, ?string $since = null): Collection
     {
-        $conversations = Conversation::whereHas('members', function ($query) use ($userId) {
-                $query->where('users.id', $userId);
-            })
-            // Hide conversations the user soft-deleted until they get new activity
-            ->whereHas('conversationMembers', function ($query) use ($userId) {
-                $query->where('user_id', $userId)
-                    ->where(function ($q) {
-                        $q->whereNull('hidden_at')
-                            ->orWhereExists(function ($exists) {
-                                $exists->select(DB::raw(1))
-                                    ->from('messages')
-                                    ->whereColumn('messages.conversation_id', 'conversation_members.conversation_id')
-                                    ->whereColumn('messages.created_at', '>', 'conversation_members.hidden_at');
-                            });
-                    });
-            })
-            ->when($since, fn($q) => $q->where('updated_at', '>', $since)) // delta filter
-            ->with(['members'])
-            ->get();
-
-        $convIds = $conversations->pluck('id')->all();
-
-        if (!empty($convIds)) {
-            // Fetch latest valid message for each conversation without using window functions (row_number() over) for MariaDB compatibility
-            $latestMessageIds = Message::select(DB::raw('MAX(id) as id'))
-                ->whereIn('conversation_id', $convIds)
-                ->whereNotExists(function ($existsQuery) use ($userId) {
-                    $existsQuery->select(DB::raw(1))
-                        ->from('conversation_members')
-                        ->whereColumn('conversation_members.conversation_id', 'messages.conversation_id')
-                        ->where('conversation_members.user_id', $userId)
-                        ->whereNotNull('conversation_members.cleared_at')
-                        ->whereColumn('messages.created_at', '<=', 'conversation_members.cleared_at');
+        try {
+            $conversations = Conversation::whereHas('conversationMembers', function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
                 })
-                ->groupBy('conversation_id')
-                ->pluck('id');
+                ->when($since, fn($q) => $q->where('updated_at', '>', $since))
+                ->with(['members'])
+                ->get();
 
-            $latestMessages = Message::whereIn('id', $latestMessageIds)
-                ->with(['reads', 'conversation.conversationMembers'])
-                ->get()
-                ->keyBy('conversation_id');
+            $convIds = $conversations->pluck('id')->all();
 
-            $conversations->each(function ($conv) use ($latestMessages) {
-                $msg = $latestMessages->get($conv->id);
-                $conv->setRelation('messages', $msg ? collect([$msg]) : collect([]));
+            if (!empty($convIds)) {
+                try {
+                    $latestMessageIds = Message::select(DB::raw('MAX(id) as id'))
+                        ->whereIn('conversation_id', $convIds)
+                        ->where('is_deleted', false)
+                        ->groupBy('conversation_id')
+                        ->pluck('id')
+                        ->filter()
+                        ->all();
+
+                    $latestMessages = !empty($latestMessageIds)
+                        ? Message::whereIn('id', $latestMessageIds)
+                            ->with(['reads', 'conversation.conversationMembers'])
+                            ->get()
+                            ->keyBy('conversation_id')
+                        : collect();
+
+                    $conversations->each(function ($conv) use ($latestMessages) {
+                        $msg = $latestMessages->get($conv->id);
+                        $conv->setRelation('messages', $msg ? collect([$msg]) : collect([]));
+                    });
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Error loading latest messages for conversations: ' . $e->getMessage());
+                }
+            }
+
+            // Append unread_count for each conversation safely
+            return $conversations->map(function ($conv) use ($userId) {
+                try {
+                    $member = ConversationMember::where('conversation_id', $conv->id)
+                        ->where('user_id', $userId)
+                        ->first();
+
+                    $lastReadId = $member?->last_read_message_id ?? 0;
+                    $clearedAt = $member?->cleared_at;
+
+                    $unreadQuery = Message::where('conversation_id', $conv->id)
+                        ->where('sender_id', '!=', $userId)
+                        ->where('is_deleted', false);
+
+                    if ($lastReadId > 0) {
+                        $unreadQuery->where('id', '>', $lastReadId);
+                    }
+                    if ($clearedAt) {
+                        $unreadQuery->where('created_at', '>', $clearedAt);
+                    }
+
+                    $conv->unread_count = $unreadQuery->count();
+                } catch (\Throwable $e) {
+                    $conv->unread_count = 0;
+                }
+
+                return $conv;
             });
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('getUserConversations error: ' . $e->getMessage());
+            return collect();
         }
-
-        // Append unread_count for each conversation
-        return $conversations->map(function ($conv) use ($userId) {
-            $member = $conv->conversationMembers()
-                ->where('user_id', $userId)
-                ->first();
-
-            $lastReadId = $member?->last_read_message_id ?? 0;
-
-            $unreadCount = $conv->messages()
-                ->where('sender_id', '!=', $userId)
-                ->where('is_deleted', false)
-                ->when($lastReadId, fn($q) => $q->where('id', '>', $lastReadId))
-                ->when($member?->cleared_at, fn($q) => $q->where('created_at', '>', $member->cleared_at))
-                ->count();
-
-            $conv->unread_count = $unreadCount;
-
-            return $conv;
-        });
     }
 
     public function getConversationMembers(int $conversationId): Collection
