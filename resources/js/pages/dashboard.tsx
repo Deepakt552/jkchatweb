@@ -9,7 +9,8 @@ import {
     Sparkles, LogOut, Settings, Bell, BellOff, X, ShieldCheck,
     ArrowLeft, Download, Image as ImageIcon, FileText,
     User, CheckCircle2, AlertCircle, Camera, Sun, Moon, LoaderCircle,
-    Mail, Info, UploadCloud, CornerUpLeft, Pin
+    Mail, Info, UploadCloud, CornerUpLeft, Pin,
+    Mic, Volume2, Play, Pause, Copy, Share2, MoreHorizontal, Globe
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { initEcho } from '@/lib/echo';
@@ -267,6 +268,27 @@ const DecryptedAttachment = ({ attach, conversationId }: DecryptedAttachmentProp
         );
     }
 
+    const isAudio = attach.file_type === 'audio' || 
+        attach.file_name.endsWith('.m4a') || 
+        attach.file_name.endsWith('.aac') || 
+        attach.file_name.endsWith('.mp3') || 
+        attach.file_name.endsWith('.ogg') || 
+        attach.file_name.endsWith('.wav');
+
+    if (isAudio) {
+        return (
+            <div className="flex items-center gap-3 p-3 dark:bg-black/40 bg-neutral-100 rounded-2xl border dark:border-white/10 border-neutral-200 min-w-[240px]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2788E8] text-white shrink-0 shadow-md">
+                    <Mic className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 flex flex-col min-w-0">
+                    <audio src={decryptedUrl} controls className="w-full h-8" />
+                    <span className="text-[10px] text-neutral-500 mt-1 truncate">{attach.file_name}</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <a
             href={decryptedUrl}
@@ -338,6 +360,20 @@ export default function Dashboard() {
     const [messageInput, setMessageInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState<string>('all');
+
+    // Voice Note Recording State
+    const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+    const [recordDuration, setRecordDuration] = useState(0);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const recordTimerRef = useRef<any>(null);
+
+    // WhatsApp Message Context Menu State
+    const [msgContextMenu, setMsgContextMenu] = useState<{
+        x: number;
+        y: number;
+        msg: Message;
+    } | null>(null);
 
     // Friends list state
     const [friends, setFriends] = useState<User[]>([]);
@@ -1080,6 +1116,8 @@ export default function Dashboard() {
         let fileType = 'document';
         if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
             fileType = 'image';
+        } else if (['m4a', 'aac', 'mp3', 'ogg', 'wav'].includes(ext)) {
+            fileType = 'audio';
         }
 
         // Compress image before uploading
@@ -1190,6 +1228,64 @@ export default function Dashboard() {
         const files = e.target.files;
         if (!files || files.length === 0 || !activeConversationId) return;
         uploadFile(files[0]);
+    };
+
+    // Voice Note Recording for Web
+    const startVoiceRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) audioChunksRef.current.push(e.data);
+            };
+
+            mediaRecorder.start(200);
+            setIsRecordingAudio(true);
+            setRecordDuration(0);
+
+            recordTimerRef.current = setInterval(() => {
+                setRecordDuration(prev => prev + 1);
+            }, 1000);
+        } catch (err) {
+            console.error('Microphone permission error:', err);
+            alert('Microphone access is required to record audio notes.');
+        }
+    };
+
+    const cancelVoiceRecording = () => {
+        if (recordTimerRef.current) clearInterval(recordTimerRef.current);
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+            mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        }
+        setIsRecordingAudio(false);
+        setRecordDuration(0);
+        audioChunksRef.current = [];
+    };
+
+    const stopAndSendVoiceRecording = async () => {
+        if (recordTimerRef.current) clearInterval(recordTimerRef.current);
+        if (!mediaRecorderRef.current) return;
+
+        const duration = recordDuration;
+        mediaRecorderRef.current.onstop = async () => {
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp4' });
+            mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+            setIsRecordingAudio(false);
+            setRecordDuration(0);
+
+            if (duration < 1) return;
+
+            const voiceFile = new File([audioBlob], `voice_${Date.now()}.m4a`, { type: 'audio/mp4' });
+            await uploadFile(voiceFile);
+        };
+
+        if (mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
     };
 
     // Handle drop event
@@ -2218,10 +2314,15 @@ export default function Dashboard() {
                                                     {lastMessage ? (
                                                         lastMessage.is_deleted ? (
                                                             <span className="truncate">🚫 This message was deleted</span>
-                                                        ) : lastMessage.type === 'image' ? (
+                                                        ) : lastMessage.type === 'image' || (lastMessage.body && lastMessage.body.includes('Photo')) ? (
                                                             <>
                                                                 <ImageIcon className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />
                                                                 <span className="truncate">Photo</span>
+                                                            </>
+                                                        ) : lastMessage.type === 'audio' || (lastMessage.body && (lastMessage.body.includes('.m4a') || lastMessage.body.includes('voice_') || lastMessage.body.includes('Voice Note'))) ? (
+                                                            <>
+                                                                <Mic className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />
+                                                                <span className="truncate">Voice Note</span>
                                                             </>
                                                         ) : lastMessage.type === 'document' ? (
                                                             <>
@@ -2229,7 +2330,7 @@ export default function Dashboard() {
                                                                 <span className="truncate">Document</span>
                                                             </>
                                                         ) : (
-                                                            <span className="truncate">{lastMessage.body}</span>
+                                                            <span className="truncate">{lastMessage.body.startsWith('{') ? 'Voice Note' : lastMessage.body}</span>
                                                         )
                                                     ) : (
                                                         <span className="truncate text-neutral-500/80">No messages yet</span>
@@ -2569,12 +2670,22 @@ export default function Dashboard() {
                                                 )}
 
                                                 {/* Chat Bubble */}
-                                                <div className={`text-sm leading-relaxed relative group/msg ${msg.type === 'image'
+                                                <div
+                                                    onContextMenu={(e) => {
+                                                        e.preventDefault();
+                                                        setMsgContextMenu({
+                                                            x: e.clientX,
+                                                            y: e.clientY,
+                                                            msg
+                                                        });
+                                                    }}
+                                                    className={`text-sm leading-relaxed relative group/msg ${msg.type === 'image'
                                                         ? 'p-1.5 rounded-2xl border dark:border-white/5 border-neutral-200/50 dark:bg-white/[0.01] bg-neutral-100 max-w-sm'
                                                         : isMe
                                                             ? 'p-3 bubble-sent text-white'
                                                             : 'p-3 bubble-received border dark:border-white/5 border-neutral-200/50 shadow-sm transition-all duration-200'
-                                                    }`}>
+                                                    }`}
+                                                >
 
                                                     {/* Hover Actions Menu */}
                                                     {!msg.is_deleted && (
@@ -2810,52 +2921,94 @@ export default function Dashboard() {
 
                                 {/* Message Composer Panel */}
                                 <div className="p-4 bg-transparent relative z-10 w-full shrink-0">
-                                    <form
-                                        onSubmit={handleSendMessage}
-                                        className="flex items-center gap-2 p-1.5 pl-3 rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.03] bg-neutral-50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-lg max-w-4xl mx-auto w-full focus-within:border-[#2788E8]/60 focus-within:shadow-[0_8px_32px_rgba(200,139,55,0.08)] transition-all duration-300"
-                                    >
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileUpload}
-                                            className="hidden"
-                                        />
+                                    {isRecordingAudio ? (
+                                        <div className="flex items-center justify-between gap-3 p-2 px-4 rounded-full border border-red-500/30 dark:bg-red-950/20 bg-red-50 shadow-lg backdrop-blur-lg max-w-4xl mx-auto w-full animate-pulse">
+                                            <button
+                                                type="button"
+                                                onClick={cancelVoiceRecording}
+                                                className="p-2 rounded-full text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                                                title="Cancel Voice Note"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
 
-                                        <button
-                                            type="button"
-                                            onClick={triggerFileSelect}
-                                            className="p-2 rounded-full text-neutral-400 dark:hover:text-white hover:text-neutral-800 hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
-                                            title="Upload File"
-                                            disabled={isUploading}
+                                            <div className="flex items-center gap-2 text-red-500 text-xs font-semibold">
+                                                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-ping" />
+                                                <span>Recording voice note...</span>
+                                                <span className="font-mono text-sm">
+                                                    {Math.floor(recordDuration / 60).toString().padStart(2, '0')}:
+                                                    {(recordDuration % 60).toString().padStart(2, '0')}
+                                                </span>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={stopAndSendVoiceRecording}
+                                                className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-md transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                                                title="Send Voice Note"
+                                            >
+                                                <Send className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <form
+                                            onSubmit={handleSendMessage}
+                                            className="flex items-center gap-2 p-1.5 pl-3 rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/[0.03] bg-neutral-50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-lg max-w-4xl mx-auto w-full focus-within:border-[#2788E8]/60 focus-within:shadow-[0_8px_32px_rgba(200,139,55,0.08)] transition-all duration-300"
                                         >
-                                            <Paperclip className="h-4 w-4" />
-                                        </button>
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                onChange={handleFileUpload}
+                                                className="hidden"
+                                            />
 
-                                        <input
-                                            type="text"
-                                            placeholder="Type your secure message..."
-                                            value={messageInput}
-                                            onChange={handleInputChange}
-                                            className="flex-1 bg-transparent outline-none border-none text-sm dark:text-neutral-100 text-neutral-800 dark:placeholder-neutral-500 placeholder-neutral-400 focus:ring-0 px-2 py-2.5 transition-colors duration-300 min-w-0"
-                                            disabled={isUploading}
-                                        />
+                                            <button
+                                                type="button"
+                                                onClick={triggerFileSelect}
+                                                className="p-2 rounded-full text-neutral-400 dark:hover:text-white hover:text-neutral-800 hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
+                                                title="Upload File"
+                                                disabled={isUploading}
+                                            >
+                                                <Paperclip className="h-4 w-4" />
+                                            </button>
 
-                                        <button
-                                            type="button"
-                                            className="p-2 rounded-full text-neutral-400 hover:text-[#2788E8] hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
-                                            title="Add Emoji"
-                                        >
-                                            <Smile className="h-4.5 w-4.5" />
-                                        </button>
+                                            <input
+                                                type="text"
+                                                placeholder="Type your secure message..."
+                                                value={messageInput}
+                                                onChange={handleInputChange}
+                                                className="flex-1 bg-transparent outline-none border-none text-sm dark:text-neutral-100 text-neutral-800 dark:placeholder-neutral-500 placeholder-neutral-400 focus:ring-0 px-2 py-2.5 transition-colors duration-300 min-w-0"
+                                                disabled={isUploading}
+                                            />
 
-                                        <button
-                                            type="submit"
-                                            disabled={!messageInput.trim() || isUploading}
-                                            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2788E8] hover:bg-[#ae7428] text-black shadow-[0_4px_12px_rgba(200,139,55,0.25)] hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200 cursor-pointer shrink-0"
-                                        >
-                                            <Send className="h-3.5 w-3.5" />
-                                        </button>
-                                    </form>
+                                            <button
+                                                type="button"
+                                                className="p-2 rounded-full text-neutral-400 hover:text-[#2788E8] hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
+                                                title="Add Emoji"
+                                            >
+                                                <Smile className="h-4.5 w-4.5" />
+                                            </button>
+
+                                            {messageInput.trim() ? (
+                                                <button
+                                                    type="submit"
+                                                    disabled={isUploading}
+                                                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2788E8] hover:bg-[#ae7428] text-black shadow-[0_4px_12px_rgba(200,139,55,0.25)] hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200 cursor-pointer shrink-0"
+                                                >
+                                                    <Send className="h-3.5 w-3.5" />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={startVoiceRecording}
+                                                    className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_4px_12px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
+                                                    title="Hold / Click to Record Voice Note"
+                                                >
+                                                    <Mic className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                        </form>
+                                    )}
                                 </div>
                             </div>
 
@@ -3918,6 +4071,63 @@ export default function Dashboard() {
                     </div>
                 );
             })()}
+
+            {msgContextMenu && (
+                <div
+                    className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+                    onClick={() => setMsgContextMenu(null)}
+                    onContextMenu={(e) => { e.preventDefault(); setMsgContextMenu(null); }}
+                >
+                    <div
+                        style={{ left: Math.min(msgContextMenu.x, window.innerWidth - 240), top: Math.min(msgContextMenu.y, window.innerHeight - 300) }}
+                        className="fixed z-[10000] w-56 rounded-2xl bg-[#1F2C34] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7)] py-2 text-white text-xs overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => {
+                                setReplyingToMessage(msgContextMenu.msg);
+                                setMsgContextMenu(null);
+                            }}
+                            className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
+                        >
+                            <CornerUpLeft className="h-4 w-4 text-[#2788E8]" />
+                            <span>Reply</span>
+                        </button>
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(msgContextMenu.msg.body);
+                                setMsgContextMenu(null);
+                            }}
+                            className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
+                        >
+                            <Copy className="h-4 w-4 text-neutral-300" />
+                            <span>Copy Message</span>
+                        </button>
+                        {msgContextMenu.msg.sender_id === currentUser?.id && (
+                            <button
+                                onClick={() => {
+                                    handleDeleteMessage(msgContextMenu.msg.id);
+                                    setMsgContextMenu(null);
+                                }}
+                                className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-red-500/10 text-left transition-colors cursor-pointer text-red-400"
+                            >
+                                <Trash2 className="h-4 w-4 text-red-400" />
+                                <span>Delete Message</span>
+                            </button>
+                        )}
+                        <button
+                            onClick={() => {
+                                alert(`Sent: ${new Date(msgContextMenu.msg.created_at).toLocaleString()}`);
+                                setMsgContextMenu(null);
+                            }}
+                            className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
+                        >
+                            <Info className="h-4 w-4 text-neutral-300" />
+                            <span>Message Details</span>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
