@@ -365,6 +365,117 @@ class ApiChatController extends Controller
         return response()->json($conv->load('members'));
     }
 
+    public function removeMember(Request $request, $id)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+        ]);
+
+        $caller = $request->user();
+        $conversationId = (int)$id;
+        $targetUserId = (int)$request->user_id;
+
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups support member removal.'], 400);
+        }
+
+        $callerMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $caller->id)
+            ->first();
+
+        if (!$callerMember || $callerMember->role !== 'admin') {
+            return response()->json(['message' => 'Only group admins can remove members.'], 403);
+        }
+
+        \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $targetUserId)
+            ->delete();
+
+        $targetUser = \App\Models\User::find($targetUserId);
+        $targetName = $targetUser ? $targetUser->name : 'Member';
+
+        $conv->load('members');
+
+        return response()->json([
+            'message' => "{$targetName} was removed from the group.",
+            'conversation' => $conv,
+        ]);
+    }
+
+    public function leaveGroup(Request $request, $id)
+    {
+        $user = $request->user();
+        $conversationId = (int)$id;
+
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups can be left.'], 400);
+        }
+
+        $member = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$member) {
+            return response()->json(['message' => 'You are not a member of this group.'], 400);
+        }
+
+        $wasAdmin = $member->role === 'admin';
+        $member->delete();
+
+        if ($wasAdmin) {
+            $nextMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)->first();
+            if ($nextMember) {
+                $nextMember->update(['role' => 'admin']);
+            }
+        }
+
+        return response()->json([
+            'message' => 'You have left the group.',
+        ]);
+    }
+
+    public function addMembers(Request $request, $id)
+    {
+        $request->validate([
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'integer',
+        ]);
+
+        $caller = $request->user();
+        $conversationId = (int)$id;
+
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups support adding members.'], 400);
+        }
+
+        $callerMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $caller->id)
+            ->first();
+
+        if (!$callerMember) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        foreach ($request->user_ids as $uid) {
+            \App\Models\ConversationMember::firstOrCreate([
+                'conversation_id' => $conversationId,
+                'user_id' => (int)$uid,
+            ], [
+                'role' => 'member',
+                'joined_at' => now(),
+            ]);
+        }
+
+        $conv->load('members');
+        return response()->json([
+            'message' => 'Members added successfully.',
+            'conversation' => $conv,
+        ]);
+    }
+
     public function myPendingRestores(Request $request)
     {
         $user = $request->user();
