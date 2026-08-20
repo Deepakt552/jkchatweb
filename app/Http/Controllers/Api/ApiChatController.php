@@ -51,7 +51,7 @@ class ApiChatController extends Controller
     {
         $request->validate([
             'conversation_id'    => 'required|integer',
-            'type'               => 'required|in:text,emoji,image,document,code',
+            'type'               => 'required|in:text,emoji,image,document,code,audio',
             'body'               => 'required|string',
             'iv'                 => 'nullable|string',
             'reply_to_message_id'=> 'nullable|integer|exists:messages,id',
