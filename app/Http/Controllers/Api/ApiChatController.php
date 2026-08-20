@@ -564,4 +564,122 @@ class ApiChatController extends Controller
             'restored_count' => $restoredCount,
         ]);
     }
+
+    public function removeMember(Request $request, $id)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+        ]);
+
+        $caller = $request->user();
+        $conversationId = (int)$id;
+        $targetUserId = (int)$request->user_id;
+
+        $callerMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $caller->id)
+            ->first();
+
+        if (!$callerMember || $callerMember->role !== 'admin') {
+            return response()->json(['message' => 'Only group admins can remove members.'], 403);
+        }
+
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups support member removal.'], 400);
+        }
+
+        \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $targetUserId)
+            ->delete();
+
+        $conv->touch();
+
+        return response()->json([
+            'message' => 'Member removed successfully.',
+            'conversation' => $conv->load('members'),
+        ]);
+    }
+
+    public function leaveGroup(Request $request, $id)
+    {
+        $caller = $request->user();
+        $conversationId = (int)$id;
+
+        $callerMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $caller->id)
+            ->first();
+
+        if (!$callerMember) {
+            return response()->json(['message' => 'You are not a member of this group.'], 404);
+        }
+
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups can be left.'], 400);
+        }
+
+        if ($callerMember->role === 'admin') {
+            $otherMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+                ->where('user_id', '!=', $caller->id)
+                ->first();
+            if ($otherMember) {
+                $otherMember->update(['role' => 'admin']);
+            }
+        }
+
+        $callerMember->delete();
+        $conv->touch();
+
+        return response()->json(['message' => 'You left the group successfully.']);
+    }
+
+    public function addMembers(Request $request, $id)
+    {
+        $caller = $request->user();
+        $conversationId = (int)$id;
+
+        $callerMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $caller->id)
+            ->first();
+
+        if (!$callerMember) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups can add members.'], 400);
+        }
+
+        $rawIds = $request->input('member_ids') ?? $request->input('user_ids') ?? [];
+        if (!is_array($rawIds) || empty($rawIds)) {
+            return response()->json(['message' => 'Please select at least one member to add.'], 422);
+        }
+
+        $addedIds = [];
+        foreach ($rawIds as $mId) {
+            $mId = (int)$mId;
+            if ($mId <= 0) continue;
+
+            $existing = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+                ->where('user_id', $mId)
+                ->first();
+            if (!$existing) {
+                \App\Models\ConversationMember::create([
+                    'conversation_id' => $conversationId,
+                    'user_id' => $mId,
+                    'role' => 'member',
+                ]);
+                $addedIds[] = $mId;
+            }
+        }
+
+        $conv->touch();
+
+        return response()->json([
+            'message' => count($addedIds) . ' member(s) added successfully.',
+            'added_ids' => $addedIds,
+            'conversation' => $conv->load('members'),
+        ]);
+    }
 }
