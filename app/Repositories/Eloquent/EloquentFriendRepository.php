@@ -89,15 +89,10 @@ class EloquentFriendRepository implements FriendRepositoryInterface
 
     public function blockUser(int $blockerId, int $blockedId): bool
     {
-        DB::transaction(function () use ($blockerId, $blockedId) {
-            BlockedUser::firstOrCreate([
-                'blocker_id' => $blockerId,
-                'blocked_id' => $blockedId,
-            ]);
-
-            // Remove friendship if any
-            $this->removeFriend($blockerId, $blockedId);
-        });
+        BlockedUser::firstOrCreate([
+            'blocker_id' => $blockerId,
+            'blocked_id' => $blockedId,
+        ]);
 
         return true;
     }

@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Events\MessageSent;
 use App\Services\FriendService;
 use Illuminate\Http\Request;
 
@@ -106,6 +109,29 @@ class ApiFriendController extends Controller
         $user = $request->user();
         $this->friendService->blockUser($user->id, $request->blocked_id);
 
+        // Add a system message to direct conversation if exists
+        try {
+            $conversation = Conversation::where('type', 'direct')
+                ->whereHas('members', function ($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                })
+                ->whereHas('members', function ($q) use ($request) {
+                    $q->where('users.id', $request->blocked_id);
+                })->first();
+
+            if ($conversation) {
+                $msg = Message::create([
+                    'conversation_id' => $conversation->id,
+                    'sender_id' => $user->id,
+                    'type' => 'system',
+                    'body' => 'You blocked this contact.',
+                    'status' => 'read',
+                ]);
+                $conversation->touch();
+                broadcast(new MessageSent($msg->load('sender')))->toOthers();
+            }
+        } catch (\Throwable $e) {}
+
         return response()->json(['message' => 'User blocked.']);
     }
 
@@ -117,6 +143,29 @@ class ApiFriendController extends Controller
 
         $user = $request->user();
         $this->friendService->unblockUser($user->id, $request->blocked_id);
+
+        // Add a system message to direct conversation if exists
+        try {
+            $conversation = Conversation::where('type', 'direct')
+                ->whereHas('members', function ($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                })
+                ->whereHas('members', function ($q) use ($request) {
+                    $q->where('users.id', $request->blocked_id);
+                })->first();
+
+            if ($conversation) {
+                $msg = Message::create([
+                    'conversation_id' => $conversation->id,
+                    'sender_id' => $user->id,
+                    'type' => 'system',
+                    'body' => 'You unblocked this contact.',
+                    'status' => 'read',
+                ]);
+                $conversation->touch();
+                broadcast(new MessageSent($msg->load('sender')))->toOthers();
+            }
+        } catch (\Throwable $e) {}
 
         return response()->json(['message' => 'User unblocked.']);
     }
@@ -215,23 +264,32 @@ class ApiFriendController extends Controller
             default     => true,
         };
 
-        // If viewer is blocked by contact, hide sensitive info
-        if ($blockedByContact) {
-            $showLastSeen = false;
-        }
+        $pendingRequestFromViewer = \App\Models\FriendRequest::where('sender_id', $viewer->id)
+            ->where('receiver_id', $contact->id)
+            ->where('status', 'pending')
+            ->first();
+
+        $pendingRequestToViewer = \App\Models\FriendRequest::where('sender_id', $contact->id)
+            ->where('receiver_id', $viewer->id)
+            ->where('status', 'pending')
+            ->first();
 
         return response()->json([
-            'id'           => $contact->id,
-            'name'         => $contact->name,
-            'username'     => $contact->username,
-            'email'        => $contact->email,
-            'status'       => $contact->about ?? 'Hey! I use SecureChat',
-            'is_online'    => $contact->online_status === 'online',
-            'last_seen_at' => $showLastSeen ? $contact->updated_at : null,
-            'avatar_url'   => ($blockedByContact || $viewerBlockedContact) ? null : $contact->avatar_url,
-            'is_blocked'   => $viewerBlockedContact,
-            'is_blocked_by'=> $blockedByContact,
-            'are_friends'  => $areFriends,
+            'id'                  => $contact->id,
+            'name'                => $contact->name,
+            'username'            => $contact->username,
+            'email'               => $contact->email,
+            'status'              => $contact->about ?? 'Hey! I use SecureChat',
+            'is_online'           => $contact->online_status === 'online',
+            'last_seen_at'        => $showLastSeen ? $contact->updated_at : null,
+            'avatar_url'          => ($blockedByContact || $viewerBlockedContact) ? null : $contact->avatar_url,
+            'is_blocked'          => $viewerBlockedContact,
+            'is_blocked_by'       => $blockedByContact,
+            'are_friends'         => $areFriends,
+            'has_sent_request'    => $pendingRequestFromViewer !== null,
+            'sent_request_id'     => $pendingRequestFromViewer?->id,
+            'has_received_request'=> $pendingRequestToViewer !== null,
+            'received_request_id' => $pendingRequestToViewer?->id,
         ]);
     }
 }
