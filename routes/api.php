@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/conversations/direct', [ApiChatController::class, 'startDirectChat']);
     Route::post('/conversations/group', [ApiChatController::class, 'startGroupChat']);
     Route::post('/conversations/{id}/update', [ApiChatController::class, 'updateGroup']);
+    Route::post('/conversations/{id}/settings', [ApiChatController::class, 'updateGroupSettings']);
     Route::post('/conversations/{id}/avatar', [ApiChatController::class, 'uploadGroupAvatar']);
     Route::post('/conversations/{id}/remove-member', [ApiChatController::class, 'removeMember']);
     Route::post('/conversations/{id}/leave', [ApiChatController::class, 'leaveGroup']);

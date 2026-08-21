@@ -66,6 +66,8 @@ class ApiChatController extends Controller
             $request->input('reply_to_message_id')
         );
 
+        $message->loadMissing(['sender', 'replyTo.sender']);
+
         return response()->json($message);
     }
 
@@ -222,6 +224,18 @@ class ApiChatController extends Controller
 
         $conv->load('members');
 
+        $creatorName = $request->user()->name;
+        foreach ($request->member_ids as $mId) {
+            if ((int)$mId !== (int)$request->user()->id) {
+                try {
+                    broadcast(new \App\Events\GroupMemberAdded((int)$mId, $conv->id, $conv->name, $creatorName, 'GroupCreated'));
+                    \App\Jobs\SendGroupPushNotification::dispatch((int)$mId, $conv->id, $conv->name, $creatorName, 'group_added');
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('GroupCreated event/push failed for member', ['user_id' => $mId, 'error' => $e->getMessage()]);
+                }
+            }
+        }
+
         return response()->json($conv);
     }
 
@@ -311,10 +325,50 @@ class ApiChatController extends Controller
             return response()->json(['message' => 'Only groups can be updated.'], 400);
         }
 
+        // Check edit permissions
+        if (($conv->edit_permissions ?? 'admins') === 'admins' && $member->role !== 'admin') {
+            return response()->json(['message' => 'Only group admins can edit group information.'], 403);
+        }
+
         $data = $request->only(['name', 'description', 'avatar_url', 'avatar_thumb_url']);
         $conv->update($data);
+        $conv->touch();
 
         return response()->json($conv->load('members'));
+    }
+
+    public function updateGroupSettings(Request $request, $id)
+    {
+        $request->validate([
+            'edit_permissions' => 'sometimes|in:admins,all',
+            'add_permissions' => 'sometimes|in:admins,all',
+            'message_permissions' => 'sometimes|in:admins,all',
+        ]);
+
+        $caller = $request->user();
+        $conversationId = (int)$id;
+
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups support settings.'], 400);
+        }
+
+        $callerMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $caller->id)
+            ->first();
+
+        if (!$callerMember || $callerMember->role !== 'admin') {
+            return response()->json(['message' => 'Only group admins can update settings.'], 403);
+        }
+
+        $data = $request->only(['edit_permissions', 'add_permissions', 'message_permissions']);
+        $conv->update($data);
+        $conv->touch();
+
+        return response()->json([
+            'message' => 'Group settings updated successfully.',
+            'conversation' => $conv->load('members'),
+        ]);
     }
 
     public function uploadGroupAvatar(Request $request, $id)
@@ -340,6 +394,11 @@ class ApiChatController extends Controller
             return response()->json(['message' => 'Only groups can have avatars uploaded.'], 400);
         }
 
+        // Check edit permissions
+        if (($conv->edit_permissions ?? 'admins') === 'admins' && $member->role !== 'admin') {
+            return response()->json(['message' => 'Only group admins can change the group photo.'], 403);
+        }
+
         // Delete old avatar file if stored locally
         if ($conv->avatar_url) {
             $oldPath = str_replace(url('storage/') . '/', '', $conv->avatar_url);
@@ -361,6 +420,7 @@ class ApiChatController extends Controller
             'avatar_url' => $avatarUrl,
             'avatar_thumb_url' => $avatarUrl,
         ]);
+        $conv->touch();
 
         return response()->json($conv->load('members'));
     }
@@ -395,6 +455,20 @@ class ApiChatController extends Controller
         $targetUser = \App\Models\User::find($targetUserId);
         $targetName = $targetUser ? $targetUser->name : 'Member';
 
+        // Post system message & broadcast
+        try {
+            $sysMsg = \App\Models\Message::create([
+                'conversation_id' => $conversationId,
+                'sender_id' => $caller->id,
+                'type' => 'text',
+                'body' => "{$caller->name} removed {$targetName}",
+                'is_edited' => false,
+                'is_deleted' => false,
+            ]);
+            broadcast(new \App\Events\MessageSent($sysMsg))->toOthers();
+        } catch (\Throwable $e) {}
+
+        $conv->touch();
         $conv->load('members');
 
         return response()->json([
@@ -431,6 +505,21 @@ class ApiChatController extends Controller
             }
         }
 
+        // Post system message & broadcast so remaining group members update instantly
+        try {
+            $sysMsg = \App\Models\Message::create([
+                'conversation_id' => $conversationId,
+                'sender_id' => $user->id,
+                'type' => 'text',
+                'body' => "{$user->name} left the group",
+                'is_edited' => false,
+                'is_deleted' => false,
+            ]);
+            broadcast(new \App\Events\MessageSent($sysMsg))->toOthers();
+        } catch (\Throwable $e) {}
+
+        $conv->touch();
+
         return response()->json([
             'message' => 'You have left the group.',
         ]);
@@ -459,14 +548,46 @@ class ApiChatController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
+        // Check add permissions
+        if (($conv->add_permissions ?? 'all') === 'admins' && $callerMember->role !== 'admin') {
+            return response()->json(['message' => 'Only group admins can add members to this group.'], 403);
+        }
+
+        $addedNames = [];
         foreach ($request->user_ids as $uid) {
-            \App\Models\ConversationMember::firstOrCreate([
+            $created = \App\Models\ConversationMember::firstOrCreate([
                 'conversation_id' => $conversationId,
                 'user_id' => (int)$uid,
             ], [
                 'role' => 'member',
                 'joined_at' => now(),
             ]);
+
+            if ($created->wasRecentlyCreated) {
+                $addedUser = \App\Models\User::find($uid);
+                if ($addedUser) $addedNames[] = $addedUser->name;
+                try {
+                    broadcast(new \App\Events\GroupMemberAdded((int)$uid, $conv->id, $conv->name, $caller->name, 'GroupMemberAdded'));
+                    \App\Jobs\SendGroupPushNotification::dispatch((int)$uid, $conv->id, $conv->name, $caller->name, 'group_added');
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('GroupMemberAdded event/push failed for member', ['user_id' => $uid, 'error' => $e->getMessage()]);
+                }
+            }
+        }
+
+        if (!empty($addedNames)) {
+            try {
+                $namesStr = implode(', ', $addedNames);
+                $sysMsg = \App\Models\Message::create([
+                    'conversation_id' => $conversationId,
+                    'sender_id' => $caller->id,
+                    'type' => 'text',
+                    'body' => "{$caller->name} added {$namesStr}",
+                    'is_edited' => false,
+                    'is_deleted' => false,
+                ]);
+                broadcast(new \App\Events\MessageSent($sysMsg))->toOthers();
+            } catch (\Throwable $e) {}
         }
 
         $conv->touch();
@@ -503,6 +624,22 @@ class ApiChatController extends Controller
         \App\Models\ConversationMember::where('conversation_id', $conversationId)
             ->where('user_id', $targetUserId)
             ->update(['role' => $request->role]);
+
+        $targetUser = \App\Models\User::find($targetUserId);
+        $targetName = $targetUser ? $targetUser->name : 'Member';
+        $roleText = $request->role === 'admin' ? 'an admin' : 'a member';
+
+        try {
+            $sysMsg = \App\Models\Message::create([
+                'conversation_id' => $conversationId,
+                'sender_id' => $caller->id,
+                'type' => 'text',
+                'body' => "{$caller->name} made {$targetName} {$roleText}",
+                'is_edited' => false,
+                'is_deleted' => false,
+            ]);
+            broadcast(new \App\Events\MessageSent($sysMsg))->toOthers();
+        } catch (\Throwable $e) {}
 
         $conv->touch();
         $conv->load('members');

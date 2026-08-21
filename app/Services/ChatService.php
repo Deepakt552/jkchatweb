@@ -81,47 +81,49 @@ class ChatService
             ]);
         }
 
-        // Validate friendship if direct conversation
         $conversation = Conversation::findOrFail($conversationId);
+
+        // Enforce group message permissions
+        if ($conversation->type === 'group' && ($conversation->message_permissions ?? 'all') === 'admins') {
+            $senderMember = ConversationMember::where('conversation_id', $conversationId)
+                ->where('user_id', $senderId)
+                ->first();
+            if (!$senderMember || $senderMember->role !== 'admin') {
+                throw ValidationException::withMessages([
+                    'conversation_id' => ['Only group admins can send messages in this group.'],
+                ]);
+            }
+        }
+
+        // WhatsApp-style block check for direct conversations:
+        // Senders can send messages, but if either party has blocked the other,
+        // the message is not delivered/pushed to the other party (stays single-tick sent).
+        $isBlocked = false;
         if ($conversation->type === 'direct') {
             $otherUserId = collect($members)->first(fn($id) => $id !== $senderId);
             if ($otherUserId) {
-                // Block check — either direction prevents messaging
-                if ($this->friendRepository->isBlocked($senderId, $otherUserId)) {
-                    throw ValidationException::withMessages([
-                        'conversation_id' => ['You have blocked this user. Unblock them to send messages.'],
-                    ]);
-                }
-                if ($this->friendRepository->isBlocked($otherUserId, $senderId)) {
-                    throw ValidationException::withMessages([
-                        'conversation_id' => ['You cannot send messages to this user.'],
-                    ]);
-                }
-                if (!$this->friendRepository->areFriends($senderId, $otherUserId)) {
-                    throw ValidationException::withMessages([
-                        'conversation_id' => ['You can only message accepted contacts.'],
-                    ]);
-                }
+                $isBlocked = $this->friendRepository->isBlocked($senderId, $otherUserId)
+                    || $this->friendRepository->isBlocked($otherUserId, $senderId);
             }
         }
 
         $message = $this->messageRepository->createMessage($conversationId, $senderId, $type, $body, $iv, $replyToMessageId);
 
-        // Send to real-time broadcaster (in-app delivery via Reverb WebSocket)
-        broadcast(new MessageSent($message))->toOthers();
+        if (!$isBlocked) {
+            // Send to real-time broadcaster (in-app delivery via Reverb WebSocket)
+            broadcast(new MessageSent($message))->toOthers();
 
-        // Dispatch queued job to send FCM push notification to recipients
-        // who are not currently connected via WebSocket (backgrounded/killed app).
-        // Only metadata is passed — never plaintext content — to preserve E2E encryption.
-        SendMessagePushNotification::dispatch(
-            $message->id,
-            $conversationId,
-            $senderId,
-            $message->sender->name ?? 'Unknown',
-            $message->body ?? 'New message',
-            $message->type ?? 'text',
-            $message->iv,
-        );
+            // Dispatch queued job to send FCM push notification to recipients
+            SendMessagePushNotification::dispatch(
+                $message->id,
+                $conversationId,
+                $senderId,
+                $message->sender->name ?? 'Unknown',
+                $message->body ?? 'New message',
+                $message->type ?? 'text',
+                $message->iv,
+            );
+        }
 
         return $message;
     }
