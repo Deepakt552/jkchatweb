@@ -513,6 +513,49 @@ class ApiChatController extends Controller
         ]);
     }
 
+    public function updateGroupSettings(Request $request, $id)
+    {
+        $request->validate([
+            'edit_permissions' => 'nullable|in:admins,all',
+            'add_permissions' => 'nullable|in:admins,all',
+            'message_permissions' => 'nullable|in:admins,all',
+        ]);
+
+        $caller = $request->user();
+        $conversationId = (int)$id;
+        $conv = \App\Models\Conversation::findOrFail($conversationId);
+        if ($conv->type !== 'group') {
+            return response()->json(['message' => 'Only groups have group settings.'], 400);
+        }
+
+        $callerMember = \App\Models\ConversationMember::where('conversation_id', $conversationId)
+            ->where('user_id', $caller->id)
+            ->first();
+
+        if (!$callerMember || $callerMember->role !== 'admin') {
+            return response()->json(['message' => 'Only group admins can update settings.'], 403);
+        }
+
+        $data = [];
+        if ($request->has('edit_permissions')) {
+            $data['edit_permissions'] = $request->edit_permissions;
+        }
+        if ($request->has('add_permissions')) {
+            $data['add_permissions'] = $request->add_permissions;
+        }
+        if ($request->has('message_permissions')) {
+            $data['message_permissions'] = $request->message_permissions;
+        }
+
+        $conv->update($data);
+        $conv->load('members');
+
+        return response()->json([
+            'message' => 'Group settings updated successfully.',
+            'conversation' => $conv,
+        ]);
+    }
+
     public function myPendingRestores(Request $request)
     {
         $user = $request->user();
