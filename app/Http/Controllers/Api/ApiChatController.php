@@ -395,6 +395,14 @@ class ApiChatController extends Controller
         $targetUser = \App\Models\User::find($targetUserId);
         $targetName = $targetUser ? $targetUser->name : 'Member';
 
+        \App\Models\Message::create([
+            'conversation_id' => $conversationId,
+            'sender_id' => $caller->id,
+            'type' => 'text',
+            'body' => "{$caller->name} removed {$targetName}",
+        ]);
+
+        $conv->touch();
         $conv->load('members');
 
         return response()->json([
@@ -431,6 +439,15 @@ class ApiChatController extends Controller
             }
         }
 
+        \App\Models\Message::create([
+            'conversation_id' => $conversationId,
+            'sender_id' => $user->id,
+            'type' => 'text',
+            'body' => "{$user->name} left the group",
+        ]);
+
+        $conv->touch();
+
         return response()->json([
             'message' => 'You have left the group.',
         ]);
@@ -459,6 +476,9 @@ class ApiChatController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
+        $addedUsers = \App\Models\User::whereIn('id', $request->user_ids)->get();
+        $addedNames = $addedUsers->pluck('name')->implode(', ');
+
         foreach ($request->user_ids as $uid) {
             \App\Models\ConversationMember::firstOrCreate([
                 'conversation_id' => $conversationId,
@@ -466,6 +486,15 @@ class ApiChatController extends Controller
             ], [
                 'role' => 'member',
                 'joined_at' => now(),
+            ]);
+        }
+
+        if ($addedNames) {
+            \App\Models\Message::create([
+                'conversation_id' => $conversationId,
+                'sender_id' => $caller->id,
+                'type' => 'text',
+                'body' => "{$caller->name} added {$addedNames}",
             ]);
         }
 

@@ -72,12 +72,34 @@ class EloquentConversationRepository implements ConversationRepositoryInterface
                 'role' => 'admin',
             ]);
 
-            foreach ($memberIds as $id) {
-                if ($id != $creatorId) {
-                    ConversationMember::create([
+            $otherIds = array_diff($memberIds, [$creatorId]);
+            foreach ($otherIds as $id) {
+                ConversationMember::create([
+                    'conversation_id' => $conv->id,
+                    'user_id' => $id,
+                    'role' => 'member',
+                ]);
+            }
+
+            $creator = \App\Models\User::find($creatorId);
+            $creatorName = $creator ? $creator->name : 'Admin';
+
+            \App\Models\Message::create([
+                'conversation_id' => $conv->id,
+                'sender_id' => $creatorId,
+                'type' => 'text',
+                'body' => "{$creatorName} created group \"{$name}\"",
+            ]);
+
+            if (!empty($otherIds)) {
+                $otherUsers = \App\Models\User::whereIn('id', $otherIds)->get();
+                $names = $otherUsers->pluck('name')->implode(', ');
+                if ($names) {
+                    \App\Models\Message::create([
                         'conversation_id' => $conv->id,
-                        'user_id' => $id,
-                        'role' => 'member',
+                        'sender_id' => $creatorId,
+                        'type' => 'text',
+                        'body' => "{$creatorName} added {$names}",
                     ]);
                 }
             }
