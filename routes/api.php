@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\DeviceTokenController;
 Route::post('/login', [ApiAuthController::class, 'login']);
 Route::post('/verify-otp', [ApiAuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [ApiAuthController::class, 'resendOtp']);
+Route::post('/forgot-password', [ApiAuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [ApiAuthController::class, 'resetPassword']);
 Route::get('/users/{id}/status', [ApiAuthController::class, 'getUserStatus']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -52,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/send', [ApiChatController::class, 'sendMessage']);
     Route::post('/messages/{id}/edit', [ApiChatController::class, 'editMessage']);
     Route::post('/messages/{id}/delete', [ApiChatController::class, 'deleteMessage']);
+    Route::get('/messages/{id}/info', [ApiChatController::class, 'messageInfo']);
     Route::post('/messages/receipt', [ApiChatController::class, 'readReceipt']);
     Route::post('/conversations/{id}/mark-read', [ApiChatController::class, 'markConversationRead']);
     Route::post('/messages/typing', [ApiChatController::class, 'typing']);

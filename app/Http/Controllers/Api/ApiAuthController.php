@@ -203,6 +203,105 @@ class ApiAuthController extends Controller
         ]);
     }
 
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'login' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->login)
+            ->orWhere('username', $request->login)
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => true,
+                'message' => 'If an account exists with that email or username, a reset code has been sent.',
+            ]);
+        }
+
+        if (!$user->is_enabled || $user->is_suspended) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account is disabled or suspended. Please contact support.',
+            ], 403);
+        }
+
+        // Generate 6-digit OTP code for password reset
+        $otp = sprintf("%06d", mt_rand(100000, 999999));
+        $user->otp_code = $otp;
+        $user->otp_expires_at = now()->addMinutes(15);
+        $user->save();
+
+        // Send OTP Mail
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+        } catch (\Exception $e) {
+            \Log::error("Failed to send password reset OTP email: " . $e->getMessage());
+        }
+
+        $emailParts = explode('@', $user->email);
+        $name = $emailParts[0];
+        $domain = $emailParts[1] ?? '';
+        $maskedName = strlen($name) > 2 ? substr($name, 0, 1) . str_repeat('*', strlen($name) - 2) . substr($name, -1) : $name . '*';
+        $maskedEmail = $maskedName . '@' . $domain;
+
+        return response()->json([
+            'success' => true,
+            'email' => $maskedEmail,
+            'message' => "A 6-digit password reset code has been sent to {$maskedEmail}.",
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'login' => 'required|string',
+            'otp' => 'required|string|size:6',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::where('email', $request->login)
+            ->orWhere('username', $request->login)
+            ->first();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'login' => ['Invalid username or email.'],
+            ]);
+        }
+
+        if (!$user->otp_code || $user->otp_code !== $request->otp) {
+            throw ValidationException::withMessages([
+                'otp' => ['Invalid verification code.'],
+            ]);
+        }
+
+        if (!$user->otp_expires_at || now()->isAfter($user->otp_expires_at)) {
+            throw ValidationException::withMessages([
+                'otp' => ['Verification code has expired. Please request a new one.'],
+            ]);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->otp_code = null;
+        $user->otp_expires_at = null;
+        $user->force_password_change = false;
+        $user->save();
+
+        // Revoke all existing Sanctum tokens for security
+        $user->tokens()->delete();
+
+        $ip = $request->ip() ?? '127.0.0.1';
+        $ua = $request->userAgent() ?? 'API Client';
+        $this->userService->logActivity($user->id, "User reset password via App OTP verification");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully! You can now log in with your new password.',
+        ]);
+    }
+
 
     public function changePassword(Request $request)
     {

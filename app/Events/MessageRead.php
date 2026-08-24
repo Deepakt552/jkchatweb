@@ -40,10 +40,14 @@ class MessageRead implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
+        $message = \App\Models\Message::with(['conversation.conversationMembers', 'reads'])->find($this->messageId);
+        $overallStatus = $message ? $message->status : $this->status;
+
         return [
             'message_id' => $this->messageId,
             'user_id' => $this->userId,
             'status' => $this->status,
+            'overall_status' => $overallStatus,
             'conversation_id' => $this->conversationId,
             'timestamp' => now()->toIso8601String(),
         ];

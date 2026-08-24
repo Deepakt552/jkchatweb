@@ -102,6 +102,76 @@ class ApiChatController extends Controller
         return response()->json(['message' => 'Message deleted.']);
     }
 
+    public function messageInfo(Request $request, $messageId)
+    {
+        $user = $request->user();
+        $message = \App\Models\Message::with([
+            'conversation.conversationMembers.user',
+            'reads.user',
+            'attachments',
+        ])->find((int)$messageId);
+
+        if (!$message) {
+            return response()->json(['message' => 'Message not found.'], 404);
+        }
+
+        // Verify user is a member of the conversation
+        $isMember = $message->conversation?->conversationMembers?->contains('user_id', $user->id) ?? false;
+        if (!$isMember) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $allMembers = $message->conversation->conversationMembers->where('user_id', '!=', $message->sender_id);
+        $reads = $message->reads;
+
+        $readList = [];
+        $deliveredList = [];
+        $undeliveredList = [];
+
+        foreach ($allMembers as $member) {
+            $memberUser = $member->user;
+            if (!$memberUser) continue;
+
+            $record = $reads->firstWhere('user_id', $member->user_id);
+            $userInfo = [
+                'user_id' => $memberUser->id,
+                'name' => $memberUser->name,
+                'username' => $memberUser->username,
+                'avatar_url' => $memberUser->avatar_url ?? null,
+                'role' => $member->role,
+            ];
+
+            if ($record && $record->read_at) {
+                $readList[] = array_merge($userInfo, [
+                    'read_at' => $record->read_at->toIso8601String(),
+                    'delivered_at' => $record->delivered_at ? $record->delivered_at->toIso8601String() : $record->read_at->toIso8601String(),
+                ]);
+            } elseif ($record && $record->delivered_at) {
+                $deliveredList[] = array_merge($userInfo, [
+                    'delivered_at' => $record->delivered_at->toIso8601String(),
+                ]);
+            } else {
+                $undeliveredList[] = $userInfo;
+            }
+        }
+
+        return response()->json([
+            'message_id' => $message->id,
+            'conversation_id' => $message->conversation_id,
+            'is_group' => $message->conversation->type === 'group',
+            'sender_id' => $message->sender_id,
+            'created_at' => $message->created_at->toIso8601String(),
+            'status' => $message->status,
+            'total_recipients' => $allMembers->count(),
+            'read_count' => count($readList),
+            'delivered_count' => count($deliveredList),
+            'undelivered_count' => count($undeliveredList),
+            'reads' => $readList,
+            'delivered' => $deliveredList,
+            'undelivered' => $undeliveredList,
+        ]);
+    }
+
     public function readReceipt(Request $request)
     {
         $request->validate([
