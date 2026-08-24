@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { initEcho } from '@/lib/echo';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -651,6 +652,10 @@ export default function Dashboard() {
     const [uploadingTargetConvId, setUploadingTargetConvId] = useState<number | null>(null);
     const [uploadingFileName, setUploadingFileName] = useState<string>('');
 
+    // Message Sending Guard & Error state
+    const [isSendingMessage, setIsSendingMessage] = useState(false);
+    const [sendErrorMessage, setSendErrorMessage] = useState<string | null>(null);
+
     // Theme Dark/Light Mode state
     const [isDark, setIsDark] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -920,7 +925,7 @@ export default function Dashboard() {
     // Send a message
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!messageInput.trim() || !activeConversationId) return;
+        if (!messageInput.trim() || !activeConversationId || isSendingMessage) return;
 
         if (editingMessage) {
             handleEditMessage(editingMessage.id, messageInput.trim());
@@ -928,7 +933,10 @@ export default function Dashboard() {
         }
 
         const body = messageInput.trim();
+        const clientTempId = Date.now() * -1;
         setMessageInput('');
+        setIsSendingMessage(true);
+        setSendErrorMessage(null);
 
         // Encrypt the message text body before sending to Laravel
         const chatKey = deriveConversationKey(activeConversationId);
@@ -947,6 +955,7 @@ export default function Dashboard() {
                     type: 'text',
                     body: encrypted.ciphertext,
                     iv: encrypted.iv,
+                    client_id: clientTempId,
                     reply_to_message_id: replyingToMessage?.id || null,
                 })
             });
@@ -998,9 +1007,18 @@ export default function Dashboard() {
                 }));
 
                 sendTypingIndicator(false);
+            } else {
+                const errData = await response.json().catch(() => ({}));
+                const errMsg = errData.message || 'Failed to send message. Please check your connection and try again.';
+                setSendErrorMessage(errMsg);
+                setMessageInput(body); // Restore text so user doesn't lose it
             }
         } catch (err) {
             console.error('Error sending message:', err);
+            setSendErrorMessage('Network error: Unable to send message. Please verify your internet connection.');
+            setMessageInput(body); // Restore text so user doesn't lose it
+        } finally {
+            setIsSendingMessage(false);
         }
     };
 
@@ -2112,11 +2130,13 @@ export default function Dashboard() {
     const isSomeoneTyping = Object.values(typingUsers).some(status => status === true);
 
     return (
-        <div className={`relative flex h-screen w-screen overflow-hidden font-sans selection:bg-[#2788E8]/30 selection:text-white transition-colors duration-300 ${isDark ? 'bg-[#0A0A0A] text-white' : 'bg-neutral-50 text-neutral-800'
+        <div className={`relative flex flex-col h-screen w-screen overflow-hidden font-sans selection:bg-[#2788E8]/30 selection:text-white transition-colors duration-300 ${isDark ? 'bg-[#0A0A0A] text-white' : 'bg-neutral-50 text-neutral-800'
             }`}>
             <Head title="Chat Workspace" />
 
-            <div className={`flex h-full w-full overflow-hidden transition-colors duration-300 ${isDark ? 'bg-[#0C0C0C]' : 'bg-white'
+            <OfflineBanner />
+
+            <div className={`flex flex-1 h-full w-full overflow-hidden transition-colors duration-300 ${isDark ? 'bg-[#0C0C0C]' : 'bg-white'
                 }`}>
 
                 {/* Left Side: Chat List */}
@@ -2923,6 +2943,22 @@ export default function Dashboard() {
 
                                 {/* Message Composer Panel */}
                                 <div className="p-4 bg-transparent relative z-10 w-full shrink-0">
+                                    {sendErrorMessage && (
+                                        <div className="max-w-4xl mx-auto mb-2 flex items-center justify-between gap-2 px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs shadow-sm">
+                                            <div className="flex items-center gap-2">
+                                                <AlertCircle size={14} className="text-rose-400 shrink-0" />
+                                                <span>{sendErrorMessage}</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setSendErrorMessage(null)}
+                                                className="text-rose-400 hover:text-rose-200 text-xs font-bold p-1 cursor-pointer"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {isRecordingAudio ? (
                                         <div className="flex items-center justify-between gap-3 p-2 px-4 rounded-full border border-red-500/30 dark:bg-red-950/20 bg-red-50 shadow-lg backdrop-blur-lg max-w-4xl mx-auto w-full animate-pulse">
                                             <button
@@ -2969,18 +3005,18 @@ export default function Dashboard() {
                                                 onClick={triggerFileSelect}
                                                 className="p-2 rounded-full text-neutral-400 dark:hover:text-white hover:text-neutral-800 hover:bg-neutral-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer shrink-0"
                                                 title="Upload File"
-                                                disabled={isUploading}
+                                                disabled={isUploading || isSendingMessage}
                                             >
                                                 <Paperclip className="h-4 w-4" />
                                             </button>
 
                                             <input
                                                 type="text"
-                                                placeholder="Type your secure message..."
+                                                placeholder={isSendingMessage ? "Encrypting & sending..." : "Type your secure message..."}
                                                 value={messageInput}
                                                 onChange={handleInputChange}
                                                 className="flex-1 bg-transparent outline-none border-none text-sm dark:text-neutral-100 text-neutral-800 dark:placeholder-neutral-500 placeholder-neutral-400 focus:ring-0 px-2 py-2.5 transition-colors duration-300 min-w-0"
-                                                disabled={isUploading}
+                                                disabled={isUploading || isSendingMessage}
                                             />
 
                                             <button
@@ -2994,10 +3030,14 @@ export default function Dashboard() {
                                             {messageInput.trim() ? (
                                                 <button
                                                     type="submit"
-                                                    disabled={isUploading}
+                                                    disabled={isUploading || isSendingMessage}
                                                     className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2788E8] hover:bg-[#ae7428] text-black shadow-[0_4px_12px_rgba(200,139,55,0.25)] hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200 cursor-pointer shrink-0"
                                                 >
-                                                    <Send className="h-3.5 w-3.5" />
+                                                    {isSendingMessage ? (
+                                                        <LoaderCircle className="h-4 w-4 animate-spin text-black" />
+                                                    ) : (
+                                                        <Send className="h-3.5 w-3.5" />
+                                                    )}
                                                 </button>
                                             ) : (
                                                 <button

@@ -55,6 +55,7 @@ class ApiChatController extends Controller
             'body'               => 'required|string',
             'iv'                 => 'nullable|string',
             'reply_to_message_id'=> 'nullable|integer|exists:messages,id',
+            'client_id'          => 'nullable',
         ]);
 
         $message = $this->chatService->sendMessage(
@@ -63,7 +64,8 @@ class ApiChatController extends Controller
             $request->type,
             $request->body,
             $request->iv,
-            $request->input('reply_to_message_id')
+            $request->input('reply_to_message_id'),
+            $request->input('client_id') ? (string)$request->input('client_id') : null
         );
 
         $message->loadMissing(['sender', 'replyTo.sender']);

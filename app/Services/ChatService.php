@@ -71,7 +71,7 @@ class ChatService
         return $messages;
     }
 
-    public function sendMessage(int $senderId, int $conversationId, string $type, string $body, ?string $iv, ?int $replyToMessageId = null): Message
+    public function sendMessage(int $senderId, int $conversationId, string $type, string $body, ?string $iv, ?int $replyToMessageId = null, ?string $clientId = null): Message
     {
         // Validate conversation membership
         $members = ConversationMember::where('conversation_id', $conversationId)->pluck('user_id')->toArray();
@@ -79,6 +79,18 @@ class ChatService
             throw ValidationException::withMessages([
                 'conversation_id' => ['Sender is not a member of this conversation.'],
             ]);
+        }
+
+        // Rapid duplicate prevention (idempotency guard: within 4 seconds with identical body & type)
+        $recentDuplicate = Message::where('conversation_id', $conversationId)
+            ->where('sender_id', $senderId)
+            ->where('type', $type)
+            ->where('body', $body)
+            ->where('created_at', '>=', now()->subSeconds(4))
+            ->first();
+
+        if ($recentDuplicate) {
+            return $recentDuplicate;
         }
 
         $conversation = Conversation::findOrFail($conversationId);
