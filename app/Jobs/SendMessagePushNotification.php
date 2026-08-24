@@ -36,10 +36,6 @@ class SendMessagePushNotification implements ShouldQueue
 
     public function handle(Messaging $messaging): void
     {
-        $conversation = \App\Models\Conversation::find($this->conversationId);
-        $isGroup = $conversation && $conversation->type === 'group';
-        $groupName = $conversation ? $conversation->name : 'Group';
-
         // Get all members of the conversation except the sender
         $recipientIds = ConversationMember::where('conversation_id', $this->conversationId)
             ->where('user_id', '!=', $this->senderId)
@@ -56,22 +52,6 @@ class SendMessagePushNotification implements ShouldQueue
             if ($deviceTokens->isEmpty()) {
                 Log::info('SendMessagePushNotification skipped: No FCM tokens found', ['user_id' => $recipientId]);
                 continue;
-            }
-
-            // Check if this recipient was mentioned in group message
-            $isMentioned = false;
-            if ($isGroup) {
-                $recipientUser = \App\Models\User::find($recipientId);
-                if ($recipientUser) {
-                    $uName = strtolower($recipientUser->name);
-                    $uHandle = strtolower($recipientUser->username ?? '');
-                    $bodyLower = strtolower($this->body);
-                    if (($uHandle && str_contains($bodyLower, '@' . $uHandle)) ||
-                        str_contains($bodyLower, '@' . $uName) ||
-                        str_contains($bodyLower, '@' . explode(' ', $uName)[0])) {
-                        $isMentioned = true;
-                    }
-                }
             }
 
             // Count total unread CONVERSATIONS (distinct chats) for badge
@@ -108,52 +88,31 @@ class SendMessagePushNotification implements ShouldQueue
             foreach ($deviceTokens as $deviceToken) {
                 if (in_array($deviceToken->fcm_token, $seenTokens)) continue;
                 $seenTokens[] = $deviceToken->fcm_token;
-                $this->sendToDevice($messaging, $deviceToken->fcm_token, $deviceToken->device_id, $recipientId, $badgeCount, $isGroup, $groupName, $isMentioned);
+                $this->sendToDevice($messaging, $deviceToken->fcm_token, $deviceToken->device_id, $recipientId, $badgeCount);
             }
         }
     }
 
-    private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId, int $badgeCount = 1, bool $isGroup = false, string $groupName = '', bool $isMentioned = false): void
+    private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId, int $badgeCount = 1): void
     {
         $notificationBody = 'New message';
         if ($this->type === 'image') {
             $notificationBody = '📷 Photo';
-        } elseif ($this->type === 'audio' || $this->type === 'voice') {
-            $notificationBody = '🎵 Voice message';
         } elseif ($this->type === 'document') {
             $notificationBody = '📄 Document';
         } elseif ($this->iv === null && !empty($this->body)) {
             $notificationBody = $this->body;
         }
 
-        $notificationTitle = $this->senderName;
-        $msgType = 'new_message';
-
-        if ($isGroup) {
-            if ($isMentioned) {
-                $notificationTitle = "{$this->senderName} in {$groupName}";
-                $notificationBody = "You were mentioned in {$groupName}";
-                $msgType = 'group_mention';
-            } else {
-                $notificationTitle = $groupName;
-                $notificationBody = "{$this->senderName}: " . $notificationBody;
-                $msgType = 'group_message';
-            }
-        }
-
         // Android: data-only message — Flutter background handler shows the notification.
         // iOS: APNs alert block is kept for reliable background/terminated delivery.
         $message = CloudMessage::withTarget('token', $token)
             ->withData([
-                'type'           => $msgType,
+                'type'           => 'new_message',
                 'chat_id'        => (string) $this->conversationId,
-                'conversation_id'=> (string) $this->conversationId,
                 'message_id'     => (string) $this->messageId,
                 'sender_id'      => (string) $this->senderId,
                 'sender_name'    => $this->senderName,
-                'group_name'     => $groupName,
-                'title'          => $notificationTitle,
-                'body'           => $notificationBody,
             ])
             ->withAndroidConfig([
                 'priority' => 'high',
@@ -169,7 +128,7 @@ class SendMessagePushNotification implements ShouldQueue
                 'payload' => [
                     'aps' => [
                         'alert' => [
-                            'title' => $notificationTitle,
+                            'title' => $this->senderName,
                             'body'  => $notificationBody,
                         ],
                         'sound'            => 'default',
