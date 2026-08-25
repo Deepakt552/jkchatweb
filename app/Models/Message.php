@@ -17,11 +17,13 @@ class Message extends Model
         'iv',
         'is_edited',
         'is_deleted',
+        'reactions',
     ];
 
     protected $casts = [
         'is_edited' => 'boolean',
         'is_deleted' => 'boolean',
+        'reactions' => 'array',
     ];
 
     protected $appends = ['read_by', 'delivered_by', 'status', 'is_restored'];

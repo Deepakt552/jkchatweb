@@ -281,7 +281,7 @@ class ApiFriendController extends Controller
             'email'               => $contact->email,
             'status'              => $contact->about ?? 'Hey! I use SecureChat',
             'is_online'           => $contact->online_status === 'online',
-            'last_seen_at'        => $showLastSeen ? $contact->updated_at : null,
+            'last_seen_at'        => $showLastSeen ? ($contact->last_seen_at ? $contact->last_seen_at->toIso8601String() : ($contact->updated_at ? $contact->updated_at->toIso8601String() : null)) : null,
             'avatar_url'          => ($blockedByContact || $viewerBlockedContact) ? null : $contact->avatar_url,
             'is_blocked'          => $viewerBlockedContact,
             'is_blocked_by'       => $blockedByContact,

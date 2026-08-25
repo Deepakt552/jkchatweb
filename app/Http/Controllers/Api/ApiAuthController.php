@@ -548,4 +548,24 @@ class ApiAuthController extends Controller
             'is_suspended' => (bool)$user->is_suspended,
         ]);
     }
+
+    public function updatePresence(Request $request)
+    {
+        $request->validate([
+            'status' => 'required|in:online,offline,away',
+        ]);
+
+        $user = $request->user();
+        $status = $request->input('status');
+
+        $user->update([
+            'online_status' => $status,
+            'last_seen_at' => now(),
+        ]);
+
+        return response()->json([
+            'status' => $user->online_status,
+            'last_seen_at' => $user->last_seen_at ? $user->last_seen_at->toIso8601String() : null,
+        ]);
+    }
 }

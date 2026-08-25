@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // FCM push notification device token registration
     Route::post('/device-token', [DeviceTokenController::class, 'register']);
+    Route::post('/user/presence', [ApiAuthController::class, 'updatePresence']);
 
     // Friend Management
     Route::get('/friends', [ApiFriendController::class, 'index']);
@@ -55,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/{id}/edit', [ApiChatController::class, 'editMessage']);
     Route::post('/messages/{id}/delete', [ApiChatController::class, 'deleteMessage']);
     Route::post('/messages/{id}/star', [ApiChatController::class, 'starMessage']);
+    Route::post('/messages/{id}/reaction', [ApiChatController::class, 'toggleReaction']);
     Route::get('/messages/{id}/info', [ApiChatController::class, 'messageInfo']);
     Route::post('/messages/receipt', [ApiChatController::class, 'readReceipt']);
     Route::post('/conversations/{id}/mark-read', [ApiChatController::class, 'markConversationRead']);

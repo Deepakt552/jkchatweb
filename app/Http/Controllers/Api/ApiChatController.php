@@ -104,6 +104,78 @@ class ApiChatController extends Controller
         return response()->json(['message' => 'Message deleted.']);
     }
 
+    public function toggleReaction(Request $request, $messageId)
+    {
+        $request->validate([
+            'emoji' => 'nullable|string|max:10',
+        ]);
+
+        $userId = $request->user()->id;
+        $emoji = $request->input('emoji');
+
+        $message = \App\Models\Message::findOrFail((int)$messageId);
+
+        // Ensure user is member of conversation
+        $isMember = \App\Models\ConversationMember::where('conversation_id', $message->conversation_id)
+            ->where('user_id', $userId)
+            ->exists();
+        if (!$isMember) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $rawReactions = $message->reactions;
+        $reactionsData = [];
+        if (is_array($rawReactions)) {
+            $reactionsData = $rawReactions;
+        } elseif (is_string($rawReactions) && !empty($rawReactions)) {
+            $decoded = json_decode($rawReactions, true);
+            if (is_array($decoded)) $reactionsData = $decoded;
+        }
+
+        $userReactions = $reactionsData['users'] ?? [];
+        if (!is_array($userReactions)) {
+            $userReactions = [];
+        }
+
+        $currentEmoji = $userReactions[(string)$userId] ?? null;
+
+        if ($currentEmoji === $emoji || empty($emoji)) {
+            // Toggle off
+            unset($userReactions[(string)$userId]);
+        } else {
+            // Single reaction per user (replaces previous emoji reaction)
+            $userReactions[(string)$userId] = $emoji;
+        }
+
+        // Recalculate counts per emoji
+        $counts = [];
+        foreach ($userReactions as $uId => $em) {
+            if (!empty($em)) {
+                $counts[$em] = ($counts[$em] ?? 0) + 1;
+            }
+        }
+
+        $newReactions = [
+            'users' => $userReactions,
+            'counts' => $counts,
+        ];
+        foreach ($counts as $em => $cnt) {
+            $newReactions[$em] = $cnt;
+        }
+
+        $message->reactions = $newReactions;
+        $message->save();
+
+        // Broadcast updated message reaction to all conversation members
+        broadcast(new \App\Events\MessageEdited($message->fresh()))->toOthers();
+
+        return response()->json([
+            'message_id' => $message->id,
+            'reactions' => $newReactions,
+            'my_reaction' => $userReactions[(string)$userId] ?? null,
+        ]);
+    }
+
     public function messageInfo(Request $request, $messageId)
     {
         $user = $request->user();
