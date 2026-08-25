@@ -113,16 +113,29 @@ class SendMessagePushNotification implements ShouldQueue
         // Android: data-only message — Flutter background handler shows the notification.
         // iOS: APNs alert block is kept for reliable background/terminated delivery.
         $message = CloudMessage::withTarget('token', $token)
+            ->withNotification(Notification::create($this->senderName, $notificationBody))
             ->withData([
                 'type'           => 'new_message',
                 'chat_id'        => (string) $this->conversationId,
+                'conversation_id'=> (string) $this->conversationId,
                 'message_id'     => (string) $this->messageId,
                 'sender_id'      => (string) $this->senderId,
                 'sender_name'    => $this->senderName,
+                'title'          => $this->senderName,
+                'body'           => (string) $notificationBody,
+                'raw_body'       => (string) $this->body,
+                'msg_type'       => (string) $this->type,
+                'iv'             => (string) ($this->iv ?? ''),
             ])
             ->withAndroidConfig([
                 'priority' => 'high',
                 'ttl'      => '86400s',
+                'notification' => [
+                    'channel_id'    => 'secure_chat_notifications',
+                    'sound'         => 'default',
+                    'default_sound' => true,
+                    'default_vibrate_timings' => true,
+                ],
             ])
             ->withApnsConfig(ApnsConfig::fromArray([
                 'headers' => [

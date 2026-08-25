@@ -125,8 +125,8 @@ class ChatService
             // Send to real-time broadcaster (in-app delivery via Reverb WebSocket)
             broadcast(new MessageSent($message))->toOthers();
 
-            // Dispatch queued job to send FCM push notification to recipients
-            SendMessagePushNotification::dispatch(
+            // Dispatch job to send FCM push notification immediately after response
+            SendMessagePushNotification::dispatchAfterResponse(
                 $message->id,
                 $conversationId,
                 $senderId,
