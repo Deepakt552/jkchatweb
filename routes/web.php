@@ -66,6 +66,8 @@ Route::middleware(['auth'])->prefix('web')->group(function () {
     Route::post('/friends/send', [\App\Http\Controllers\Api\ApiFriendController::class, 'send']);
     Route::post('/friends/accept', [\App\Http\Controllers\Api\ApiFriendController::class, 'accept']);
     Route::post('/friends/reject', [\App\Http\Controllers\Api\ApiFriendController::class, 'reject']);
+    Route::post('/friends/cancel', [\App\Http\Controllers\Api\ApiFriendController::class, 'cancel']);
+    Route::post('/friends/remove', [\App\Http\Controllers\Api\ApiFriendController::class, 'remove']);
     Route::post('/friends/search', [\App\Http\Controllers\Api\ApiFriendController::class, 'search']);
     Route::get('/friends/profile/{userId}', [\App\Http\Controllers\Api\ApiFriendController::class, 'getContactProfile']);
     Route::post('/friends/block', [\App\Http\Controllers\Api\ApiFriendController::class, 'block']);
@@ -78,13 +80,22 @@ Route::middleware(['auth'])->prefix('web')->group(function () {
     Route::post('/messages/send', [\App\Http\Controllers\Api\ApiChatController::class, 'sendMessage']);
     Route::post('/messages/{id}/edit', [\App\Http\Controllers\Api\ApiChatController::class, 'editMessage']);
     Route::post('/messages/{id}/delete', [\App\Http\Controllers\Api\ApiChatController::class, 'deleteMessage']);
+    Route::get('/messages/{id}/info', [\App\Http\Controllers\Api\ApiChatController::class, 'messageInfo']);
     Route::post('/messages/receipt', [\App\Http\Controllers\Api\ApiChatController::class, 'readReceipt']);
     Route::post('/conversations/{id}/mark-read', [\App\Http\Controllers\Api\ApiChatController::class, 'markConversationRead']);
     Route::post('/conversations/{id}/clear', [\App\Http\Controllers\Api\ApiChatController::class, 'clearChat']);
     Route::post('/messages/typing', [\App\Http\Controllers\Api\ApiChatController::class, 'typing']);
     Route::post('/conversations/direct', [\App\Http\Controllers\Api\ApiChatController::class, 'startDirectChat']);
+    Route::post('/conversations/group', [\App\Http\Controllers\Api\ApiChatController::class, 'startGroupChat']);
     Route::post('/conversations/{id}/update', [\App\Http\Controllers\Api\ApiChatController::class, 'updateGroup']);
+    Route::post('/conversations/{id}/settings', [\App\Http\Controllers\Api\ApiChatController::class, 'updateGroupSettings']);
     Route::post('/conversations/{id}/avatar', [\App\Http\Controllers\Api\ApiChatController::class, 'uploadGroupAvatar']);
+    Route::post('/conversations/{id}/remove-member', [\App\Http\Controllers\Api\ApiChatController::class, 'removeMember']);
+    Route::post('/conversations/{id}/leave', [\App\Http\Controllers\Api\ApiChatController::class, 'leaveGroup']);
+    Route::post('/conversations/{id}/add-members', [\App\Http\Controllers\Api\ApiChatController::class, 'addMembers']);
+    Route::post('/conversations/{id}/members/{memberId}/role', [\App\Http\Controllers\Api\ApiChatController::class, 'updateMemberRole']);
+    Route::get('/my-pending-restores', [\App\Http\Controllers\Api\ApiChatController::class, 'myPendingRestores']);
+    Route::post('/my-restore', [\App\Http\Controllers\Api\ApiChatController::class, 'myRestore']);
 
     // Chunk File Attachments
     Route::post('/files/upload-chunk', [\App\Http\Controllers\Api\ApiFileController::class, 'uploadChunk']);

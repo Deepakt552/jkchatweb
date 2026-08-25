@@ -10,11 +10,22 @@ import {
     ArrowLeft, Download, Image as ImageIcon, FileText,
     User, CheckCircle2, AlertCircle, Camera, Sun, Moon, LoaderCircle,
     Mail, Info, UploadCloud, CornerUpLeft, Pin,
-    Mic, Volume2, Play, Pause, Copy, Share2, MoreHorizontal, Globe
+    Mic, Volume2, Play, Pause, Copy, Share2, MoreHorizontal, Globe,
+    Star, StarOff, History, SlidersHorizontal, UserMinus, Crown, SmilePlus, MapPin, Maximize2
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { initEcho } from '@/lib/echo';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { CreateGroupModal } from '@/components/chat/CreateGroupModal';
+import { AddMembersModal } from '@/components/chat/AddMembersModal';
+import { GroupSettingsModal } from '@/components/chat/GroupSettingsModal';
+import { StarredMessagesModal } from '@/components/chat/StarredMessagesModal';
+import { ForwardMessageModal } from '@/components/chat/ForwardMessageModal';
+import { MessageInfoModal } from '@/components/chat/MessageInfoModal';
+import { ChatRestoreModal } from '@/components/chat/ChatRestoreModal';
+import { LiquidReactionBar } from '@/components/chat/LiquidReactionBar';
+import { MessageBodyRenderer, formatMessagePreview } from '@/components/chat/MessageBodyRenderer';
+import { ImageLightboxModal } from '@/components/chat/ImageLightboxModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -223,67 +234,51 @@ const DecryptedAttachment = ({ attach, conversationId }: DecryptedAttachmentProp
         );
     }
 
-    if (attach.file_type === 'image') {
+    const isImage =
+        attach.file_type === 'image' ||
+        (attach.file_type && attach.file_type.startsWith('image/')) ||
+        (/\.(jpg|jpeg|png|webp|gif|bmp|svg|heic)$/i.test(attach.file_name || ''));
+
+    if (isImage) {
         return (
             <>
-                <img
-                    src={decryptedUrl}
-                    alt={attach.file_name}
-                    className="max-h-60 w-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                <div
                     onClick={() => setShowModal(true)}
-                />
-
-                {showModal && (
-                    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-4">
-                        {/* Close button top right */}
-                        <div className="absolute top-4 right-4 flex items-center gap-3">
-                            <a
-                                href={decryptedUrl}
-                                download={attach.file_name}
-                                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                                title="Download Image"
-                            >
-                                <Download className="h-5 w-5" />
-                            </a>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                                title="Close"
-                            >
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        {/* Modal Image content */}
-                        <div className="max-w-4xl max-h-[85vh] w-full flex items-center justify-center relative">
-                            <img
-                                src={decryptedUrl}
-                                alt={attach.file_name}
-                                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl border border-white/10"
-                            />
-                        </div>
-
-                        {/* File details banner at bottom */}
-                        <div className="mt-4 text-center">
-                            <span className="text-sm font-semibold text-neutral-300 block truncate max-w-md">{attach.file_name}</span>
-                            <span className="text-xs text-neutral-500 block mt-1">{(attach.file_size / 1024).toFixed(1)} KB</span>
-                        </div>
+                    className="group/img relative rounded-xl overflow-hidden cursor-pointer bg-black/10 dark:bg-black/40 border dark:border-white/5 border-neutral-200 shadow-sm"
+                >
+                    <img
+                        src={decryptedUrl}
+                        alt={attach.file_name}
+                        className="max-h-72 w-full object-cover transition-transform duration-300 group-hover/img:scale-[1.02]"
+                    />
+                    <div className="absolute inset-0 bg-black/35 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <span className="px-3 py-1.5 rounded-full bg-black/70 text-white text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 shadow-xl border border-white/10">
+                            <Maximize2 className="h-3.5 w-3.5" />
+                            View Fullscreen
+                        </span>
                     </div>
-                )}
+                </div>
+
+                <ImageLightboxModal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    imageUrl={decryptedUrl}
+                    fileName={attach.file_name}
+                    fileSize={attach.file_size}
+                />
             </>
         );
     }
 
-    const isAudio = attach.file_type === 'audio' || 
-        attach.file_name.endsWith('.m4a') || 
-        attach.file_name.endsWith('.aac') || 
-        attach.file_name.endsWith('.mp3') || 
-        attach.file_name.endsWith('.ogg') || 
-        attach.file_name.endsWith('.wav');
+    const isAudio =
+        attach.file_type === 'audio' ||
+        (attach.file_type && attach.file_type.startsWith('audio/')) ||
+        (/\.(m4a|aac|mp3|ogg|wav|opus)$/i.test(attach.file_name || '')) ||
+        (attach.file_name && attach.file_name.startsWith('voice_'));
 
     if (isAudio) {
         return (
-            <div className="flex items-center gap-3 p-3 dark:bg-black/40 bg-neutral-100 rounded-2xl border dark:border-white/10 border-neutral-200 min-w-[240px]">
+            <div className="flex items-center gap-3 p-3 dark:bg-black/40 bg-neutral-100 rounded-2xl border dark:border-white/10 border-neutral-200 min-w-[260px]">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2788E8] text-white shrink-0 shadow-md">
                     <Mic className="h-5 w-5 text-white" />
                 </div>
@@ -355,6 +350,61 @@ const compressAndCropImage = (file: File): Promise<Blob> => {
     });
 };
 
+const shouldShowAttachmentCaption = (body?: string | null, attachments?: any[]): boolean => {
+    if (!body) return false;
+    const trimmed = body.toString().trim();
+    if (!trimmed) return false;
+    if (trimmed.startsWith('{') && (
+        trimmed.includes('"file_path"') ||
+        trimmed.includes('"encryption_key"') ||
+        trimmed.includes('"message_id"') ||
+        trimmed.includes('"file_name"') ||
+        trimmed.includes('"file_mime"')
+    )) {
+        return false;
+    }
+    if (trimmed.startsWith('voice_') && (trimmed.endsWith('.m4a') || trimmed.endsWith('.aac') || trimmed.endsWith('.mp3'))) {
+        return false;
+    }
+    if (attachments && attachments.some(a => a.file_name === trimmed || trimmed.includes(a.file_name))) {
+        return false;
+    }
+    return true;
+};
+
+const parseRawAttachmentJson = (body?: string | null) => {
+    if (!body) return null;
+    const trimmed = body.toString().trim();
+    if (trimmed.startsWith('{') && (
+        trimmed.includes('"file_path"') ||
+        trimmed.includes('"file_name"') ||
+        trimmed.includes('"file_type"') ||
+        trimmed.includes('"encryption_key"')
+    )) {
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed.file_path || parsed.file_name || parsed.id || parsed.message_id) {
+                const fname = (parsed.file_name || '').toString();
+                let ftype = (parsed.file_type || '').toString();
+                if (!ftype) {
+                    if (/\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(fname)) ftype = 'image';
+                    else if (/\.(m4a|aac|mp3|ogg|wav)$/i.test(fname) || fname.startsWith('voice_')) ftype = 'audio';
+                    else ftype = 'document';
+                }
+                return {
+                    id: parsed.id || parsed.message_id || 0,
+                    file_name: fname || 'Attachment',
+                    file_type: ftype,
+                    file_size: Number(parsed.file_size || 0),
+                    encryption_key: parsed.encryption_key,
+                    encryption_iv: parsed.encryption_iv,
+                };
+            }
+        } catch (_) {}
+    }
+    return null;
+};
+
 export default function Dashboard() {
     const { auth } = usePage().props as any;
     const [currentUser, setCurrentUser] = useState<User>(auth?.user as User);
@@ -387,15 +437,72 @@ export default function Dashboard() {
     // Friend / Search Modals State
     const [showNewChatModal, setShowNewChatModal] = useState(false);
     const [showFriendsModal, setShowFriendsModal] = useState(false);
+    const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+    const [showAddMembersModal, setShowAddMembersModal] = useState(false);
+    const [showGroupSettingsModal, setShowGroupSettingsModal] = useState(false);
+    const [showStarredModal, setShowStarredModal] = useState(false);
+    const [showForwardModal, setShowForwardModal] = useState(false);
+    const [forwardTargetMsg, setForwardTargetMsg] = useState<Message | null>(null);
+    const [showMessageInfoModal, setShowMessageInfoModal] = useState(false);
+    const [infoTargetMsg, setInfoTargetMsg] = useState<Message | null>(null);
+    const [showRestoreModal, setShowRestoreModal] = useState(false);
+    const [showPlusDropdown, setShowPlusDropdown] = useState(false);
+    const [activeReactionMsgId, setActiveReactionMsgId] = useState<number | null>(null);
+
+    // Starred messages state
+    const [starredIds, setStarredIds] = useState<number[]>(() => {
+        try {
+            const saved = localStorage.getItem('starred_messages');
+            return saved ? JSON.parse(saved) : [];
+        } catch (_) {
+            return [];
+        }
+    });
+
+    const toggleStarMessage = (msgId: number) => {
+        setStarredIds(prev => {
+            const next = prev.includes(msgId) ? prev.filter(id => id !== msgId) : [...prev, msgId];
+            localStorage.setItem('starred_messages', JSON.stringify(next));
+            return next;
+        });
+    };
+
+    // Message reactions state
+    const [messageReactions, setMessageReactions] = useState<Record<number, Record<string, number>>>(() => {
+        try {
+            const saved = localStorage.getItem('message_reactions');
+            return saved ? JSON.parse(saved) : {};
+        } catch (_) {
+            return {};
+        }
+    });
+
+    const handleReactMessage = (msgId: number, emoji: string) => {
+        setMessageReactions(prev => {
+            const current = prev[msgId] || {};
+            const nextCount = (current[emoji] || 0) + 1;
+            const updated = {
+                ...prev,
+                [msgId]: {
+                    ...current,
+                    [emoji]: nextCount,
+                },
+            };
+            localStorage.setItem('message_reactions', JSON.stringify(updated));
+            return updated;
+        });
+        setActiveReactionMsgId(null);
+    };
+
     const [friendsSearchQuery, setFriendsSearchQuery] = useState('');
     const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
     const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
     const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
-    const [friendsModalTab, setFriendsModalTab] = useState<'search' | 'requests'>('search');
+    const [friendsModalTab, setFriendsModalTab] = useState<'search' | 'requests' | 'sent'>('search');
 
     // Profile Settings modal state
     const [showSettingsModal, setShowSettingsModal] = useState(false);
-    const [settingsTab, setSettingsTab] = useState<'profile' | 'privacy' | 'appearance' | 'account'>('profile');
+    const [settingsTab, setSettingsTab] = useState<'profile' | 'privacy' | 'appearance' | 'account' | 'restore'>('profile');
     const [editName, setEditName] = useState(currentUser?.name || '');
     const [editAbout, setEditAbout] = useState(currentUser?.about || '');
     const [editLastSeen, setEditLastSeen] = useState(currentUser?.privacy_settings?.last_seen_visibility || 'everyone');
@@ -1545,6 +1652,143 @@ export default function Dashboard() {
         }
     };
 
+    // Cancel sent friend request
+    const handleCancelFriendRequest = async (requestId: number) => {
+        try {
+            const response = await fetch('/web/friends/cancel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                },
+                body: JSON.stringify({ request_id: requestId }),
+            });
+            if (response.ok) {
+                fetchSentRequests();
+            }
+        } catch (err) {
+            console.error('Error cancelling friend request:', err);
+        }
+    };
+
+    // Remove friend
+    const handleRemoveFriend = async (friendId: number) => {
+        if (!confirm('Are you sure you want to remove this contact from your friends list?')) return;
+        try {
+            const response = await fetch('/web/friends/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                },
+                body: JSON.stringify({ friend_id: friendId }),
+            });
+            if (response.ok) {
+                fetchFriends();
+                fetchConversations();
+            }
+        } catch (err) {
+            console.error('Error removing friend:', err);
+        }
+    };
+
+    // Reply privately from group message
+    const handleReplyPrivately = async (senderId: number, senderName: string, msg: Message) => {
+        try {
+            const response = await fetch('/web/conversations/direct', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                },
+                body: JSON.stringify({ friend_id: senderId }),
+            });
+            if (response.ok) {
+                const newConv = await response.json();
+                if (!conversations.some(c => c.id === newConv.id)) {
+                    setConversations(prev => [newConv, ...prev]);
+                }
+                setActiveConversationId(newConv.id);
+                setReplyingToMessage({
+                    ...msg,
+                    sender_name: senderName,
+                });
+            }
+        } catch (err) {
+            console.error('Error replying privately:', err);
+        }
+    };
+
+    // Remove group member (Admin only)
+    const handleRemoveGroupMember = async (memberId: number) => {
+        if (!activeConversation) return;
+        if (!confirm('Are you sure you want to remove this member from the group?')) return;
+        try {
+            const response = await fetch(`/web/conversations/${activeConversation.id}/remove-member`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                },
+                body: JSON.stringify({ user_id: memberId }),
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setConversations(prev => prev.map(c => c.id === data.conversation.id ? { ...c, ...data.conversation } : c));
+            }
+        } catch (err) {
+            console.error('Error removing group member:', err);
+        }
+    };
+
+    // Update group member role (Admin only)
+    const handleUpdateMemberRole = async (memberId: number, newRole: 'admin' | 'member') => {
+        if (!activeConversation) return;
+        try {
+            const response = await fetch(`/web/conversations/${activeConversation.id}/members/${memberId}/role`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                },
+                body: JSON.stringify({ role: newRole }),
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setConversations(prev => prev.map(c => c.id === data.conversation.id ? { ...c, ...data.conversation } : c));
+            }
+        } catch (err) {
+            console.error('Error updating member role:', err);
+        }
+    };
+
+    // Leave group
+    const handleLeaveGroup = async () => {
+        if (!activeConversation) return;
+        if (!confirm('Are you sure you want to leave this group?')) return;
+        try {
+            const response = await fetch(`/web/conversations/${activeConversation.id}/leave`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content || '',
+                },
+            });
+            if (response.ok) {
+                setConversations(prev => prev.filter(c => c.id !== activeConversation.id));
+                setActiveConversationId(null);
+            }
+        } catch (err) {
+            console.error('Error leaving group:', err);
+        }
+    };
+
     // Send typing status to backend
     const sendTypingIndicator = async (typing: boolean) => {
         if (!activeConversationId) return;
@@ -2153,7 +2397,25 @@ export default function Dashboard() {
                             </span>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 relative">
+                            {/* Starred Messages Button */}
+                            <button
+                                onClick={() => setShowStarredModal(true)}
+                                className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-amber-400 hover:bg-amber-400/15 hover:border-amber-400/45 transition-all shadow-[0_0_10px_rgba(251,191,36,0.05)] cursor-pointer"
+                                title="Starred Messages"
+                            >
+                                <Star className="h-4 w-4 fill-amber-400/30" />
+                            </button>
+
+                            {/* Chat Restore / History Button */}
+                            <button
+                                onClick={() => setShowRestoreModal(true)}
+                                className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-neutral-400 hover:text-[#2788E8] hover:bg-[#2788E8]/15 hover:border-[#2788E8]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
+                                title="Recover Soft-Deleted History"
+                            >
+                                <History className="h-4 w-4" />
+                            </button>
+
                             {/* Manage Friends Button */}
                             <button
                                 onClick={() => {
@@ -2186,14 +2448,45 @@ export default function Dashboard() {
                                 <Settings className="h-4.5 w-4.5" />
                             </button>
 
-                            {/* Create Chat Button */}
-                            <button
-                                onClick={() => setShowNewChatModal(true)}
-                                className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#2788E8] hover:bg-[#2788E8]/15 hover:border-[#2788E8]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
-                                title="New Conversation"
-                            >
-                                <Plus className="h-5 w-5" />
-                            </button>
+                            {/* Create Chat / Group Plus Menu */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowPlusDropdown(prev => !prev)}
+                                    className="flex h-9 w-9 items-center justify-center rounded-full border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-neutral-50 text-[#2788E8] hover:bg-[#2788E8]/15 hover:border-[#2788E8]/45 transition-all shadow-[0_0_10px_rgba(200,139,55,0.05)] cursor-pointer"
+                                    title="New Chat or Group"
+                                >
+                                    <Plus className="h-5 w-5" />
+                                </button>
+
+                                {showPlusDropdown && (
+                                    <div
+                                        className={`absolute right-0 mt-2 w-48 rounded-xl border shadow-xl py-1.5 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 ${
+                                            isDark ? 'border-white/10 bg-[#161616]/95 text-white' : 'border-neutral-200 bg-white text-neutral-900'
+                                        }`}
+                                    >
+                                        <button
+                                            onClick={() => {
+                                                setShowPlusDropdown(false);
+                                                setShowNewChatModal(true);
+                                            }}
+                                            className="w-full px-4 py-2.5 text-xs flex items-center gap-2.5 hover:bg-[#2788E8]/10 text-left transition-colors cursor-pointer"
+                                        >
+                                            <User className="h-4 w-4 text-[#2788E8]" />
+                                            <span>New Direct Chat</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowPlusDropdown(false);
+                                                setShowCreateGroupModal(true);
+                                            }}
+                                            className="w-full px-4 py-2.5 text-xs flex items-center gap-2.5 hover:bg-[#2788E8]/10 text-left transition-colors cursor-pointer"
+                                        >
+                                            <Users className="h-4 w-4 text-[#2788E8]" />
+                                            <span>Create New Group</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -2333,28 +2626,19 @@ export default function Dashboard() {
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-1.5 text-xs text-neutral-400 truncate min-w-0 flex-1 mr-2">
-                                                    {lastMessage ? (
-                                                        lastMessage.is_deleted ? (
-                                                            <span className="truncate">🚫 This message was deleted</span>
-                                                        ) : lastMessage.type === 'image' || (lastMessage.body && lastMessage.body.includes('Photo')) ? (
+                                                    {lastMessage ? (() => {
+                                                        const preview = formatMessagePreview(lastMessage);
+                                                        return (
                                                             <>
-                                                                <ImageIcon className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />
-                                                                <span className="truncate">Photo</span>
+                                                                {preview.icon === 'image' && <ImageIcon className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />}
+                                                                {preview.icon === 'audio' && <Mic className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />}
+                                                                {preview.icon === 'document' && <FileText className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />}
+                                                                {preview.icon === 'location' && <MapPin className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />}
+                                                                {preview.icon === 'contact' && <User className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />}
+                                                                <span className="truncate">{preview.label}</span>
                                                             </>
-                                                        ) : lastMessage.type === 'audio' || (lastMessage.body && (lastMessage.body.includes('.m4a') || lastMessage.body.includes('voice_') || lastMessage.body.includes('Voice Note'))) ? (
-                                                            <>
-                                                                <Mic className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />
-                                                                <span className="truncate">Voice Note</span>
-                                                            </>
-                                                        ) : lastMessage.type === 'document' ? (
-                                                            <>
-                                                                <FileText className="h-3.5 w-3.5 shrink-0 text-[#2788E8]/80" />
-                                                                <span className="truncate">Document</span>
-                                                            </>
-                                                        ) : (
-                                                            <span className="truncate">{lastMessage.body.startsWith('{') ? 'Voice Note' : lastMessage.body}</span>
-                                                        )
-                                                    ) : (
+                                                        );
+                                                    })() : (
                                                         <span className="truncate text-neutral-500/80">No messages yet</span>
                                                     )}
                                                 </div>
@@ -2680,6 +2964,9 @@ export default function Dashboard() {
                                         const isMe = msg.sender_id === currentUser?.id;
                                         const showName = !isMe && activeConversation.type === 'group';
                                         const hasAttachments = msg.attachments && msg.attachments.length > 0;
+                                        const rawAttach = !hasAttachments ? parseRawAttachmentJson(msg.body) : null;
+                                        const allAttachments = hasAttachments ? msg.attachments! : (rawAttach ? [rawAttach] : []);
+                                        const displayAttachments = allAttachments.length > 0;
 
                                         return (
                                             <div
@@ -2709,26 +2996,70 @@ export default function Dashboard() {
                                                     }`}
                                                 >
 
+                                                    {/* Floating Quick Reaction Bar */}
+                                                    {activeReactionMsgId === msg.id && (
+                                                        <div className={`absolute -top-11 z-30 ${isMe ? 'right-0' : 'left-0'}`}>
+                                                            <LiquidReactionBar
+                                                                onSelectEmoji={(emoji) => handleReactMessage(msg.id, emoji)}
+                                                                isDark={isDark}
+                                                            />
+                                                        </div>
+                                                    )}
+
                                                     {/* Hover Actions Menu */}
                                                     {!msg.is_deleted && (
                                                         <div className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 transition-opacity flex items-center gap-1 z-20 ${isMe ? 'right-full mr-2' : 'left-full ml-2'}`}>
+                                                            {/* React Button */}
+                                                            <button
+                                                                onClick={() => setActiveReactionMsgId(prev => prev === msg.id ? null : msg.id)}
+                                                                className="p-1 rounded-md dark:bg-black/50 bg-white dark:hover:bg-[#2788E8]/15 hover:bg-neutral-100 text-neutral-400 dark:hover:text-[#2788E8] hover:text-[#2788E8] transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm"
+                                                                title="React"
+                                                            >
+                                                                <SmilePlus className="h-3.5 w-3.5" />
+                                                            </button>
+
+                                                            {/* Reply */}
                                                             <button
                                                                 onClick={() => {
                                                                     setReplyingToMessage(msg);
-                                                                    setEditingMessage(null); // Clear editing when starting reply
+                                                                    setEditingMessage(null);
                                                                 }}
                                                                 className="p-1 rounded-md dark:bg-black/50 bg-white dark:hover:bg-[#2788E8]/15 hover:bg-neutral-100 text-neutral-400 dark:hover:text-[#2788E8] hover:text-[#2788E8] transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm"
                                                                 title="Reply"
                                                             >
                                                                 <CornerUpLeft className="h-3.5 w-3.5" />
                                                             </button>
+
+                                                            {/* Star Toggle */}
+                                                            <button
+                                                                onClick={() => toggleStarMessage(msg.id)}
+                                                                className={`p-1 rounded-md dark:bg-black/50 bg-white hover:bg-amber-400/15 transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm ${
+                                                                    starredIds.includes(msg.id) ? 'text-amber-400' : 'text-neutral-400 hover:text-amber-400'
+                                                                }`}
+                                                                title={starredIds.includes(msg.id) ? 'Unstar' : 'Star'}
+                                                            >
+                                                                <Star className={`h-3.5 w-3.5 ${starredIds.includes(msg.id) ? 'fill-amber-400' : ''}`} />
+                                                            </button>
+
+                                                            {/* Forward */}
+                                                            <button
+                                                                onClick={() => {
+                                                                    setForwardTargetMsg(msg);
+                                                                    setShowForwardModal(true);
+                                                                }}
+                                                                className="p-1 rounded-md dark:bg-black/50 bg-white dark:hover:bg-[#2788E8]/15 hover:bg-neutral-100 text-neutral-400 dark:hover:text-[#2788E8] hover:text-[#2788E8] transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm"
+                                                                title="Forward"
+                                                            >
+                                                                <Share2 className="h-3.5 w-3.5" />
+                                                            </button>
+
                                                             {isMe && msg.type === 'text' && (
                                                                 <>
                                                                     <button
                                                                         onClick={() => {
                                                                             setEditingMessage(msg);
                                                                             setMessageInput(msg.body);
-                                                                            setReplyingToMessage(null); // Clear reply when starting editing
+                                                                            setReplyingToMessage(null);
                                                                         }}
                                                                         className="p-1 rounded-md dark:bg-black/50 bg-white dark:hover:bg-[#2788E8]/15 hover:bg-neutral-100 text-neutral-400 dark:hover:text-[#2788E8] hover:text-[#2788E8] transition-all cursor-pointer border dark:border-white/10 border-neutral-200 shadow-sm"
                                                                         title="Edit Message"
@@ -2747,27 +3078,21 @@ export default function Dashboard() {
                                                         </div>
                                                     )}
 
-                                                    {/* Quoted Reply Preview */}
-                                                    {msg.reply_to && (
+                                                    {/* Quoted Message Preview if replying */}
+                                                    {msg.reply_to && !msg.reply_to.is_deleted && (
                                                         <div
-                                                            className={`mb-2 p-2 rounded-lg border-l-[3px] text-xs transition-colors flex items-center justify-between gap-4 cursor-pointer select-none ${isMe
-                                                                    ? 'bg-black/15 border-[#2788E8] text-neutral-200 hover:bg-black/25'
-                                                                    : 'bg-neutral-100/60 dark:bg-white/5 border-[#2788E8] dark:text-neutral-300 text-neutral-600 hover:bg-[#2788E8]/10 dark:hover:bg-white/10'
-                                                                }`}
                                                             onClick={() => {
-                                                                const element = document.getElementById(`msg-${msg.reply_to!.id}`);
-                                                                if (element) {
-                                                                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                                    element.classList.add('pulse-highlight');
-                                                                    setTimeout(() => {
-                                                                        element.classList.remove('pulse-highlight');
-                                                                    }, 1500);
-                                                                }
+                                                                const el = document.getElementById(`msg-${msg.reply_to.id}`);
+                                                                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                                             }}
+                                                            className={`mb-2 p-2 rounded-xl text-xs flex items-center justify-between gap-2 border cursor-pointer transition-colors ${isMe
+                                                                ? 'bg-black/20 border-white/10 text-white/90 hover:bg-black/30'
+                                                                : 'dark:bg-white/5 bg-neutral-200/60 dark:border-white/5 border-neutral-300/60 dark:text-neutral-300 text-neutral-700 hover:bg-neutral-200'
+                                                                }`}
                                                         >
-                                                            <div className="flex flex-col min-w-0">
-                                                                <span className="font-bold text-[#2788E8] text-[10px] mb-0.5">
-                                                                    {msg.reply_to.sender_name || 'Staff'}
+                                                            <div className="border-l-2 border-[#2788E8] pl-2 min-w-0">
+                                                                <span className="font-semibold text-[10px] text-[#2788E8] block truncate">
+                                                                    {msg.reply_to.sender_id === currentUser?.id ? 'You' : msg.reply_to.sender_name || 'User'}
                                                                 </span>
                                                                 <p className="truncate opacity-80 max-w-[200px] flex items-center gap-1">
                                                                     {msg.reply_to.type === 'image' || msg.reply_to.body.includes('Photo') || msg.reply_to.body.includes('📷') ? (
@@ -2790,9 +3115,9 @@ export default function Dashboard() {
                                                     )}
 
                                                     {/* File Sharing Attachment rendering */}
-                                                    {hasAttachments ? (
+                                                    {displayAttachments ? (
                                                         <div className="space-y-2">
-                                                            {msg.attachments!.map((attach, aIdx) => (
+                                                            {allAttachments.map((attach, aIdx) => (
                                                                 <div key={`attach-${attach.id || aIdx}`} className="rounded-xl overflow-hidden max-w-sm">
                                                                     <DecryptedAttachment
                                                                         attach={attach}
@@ -2801,12 +3126,17 @@ export default function Dashboard() {
                                                                 </div>
                                                             ))}
                                                             <div className="flex items-center justify-between gap-4 mt-1">
-                                                                {msg.type !== 'image' ? (
-                                                                    <p className="text-xs opacity-90 break-all">{msg.body}</p>
+                                                                {msg.type !== 'image' && shouldShowAttachmentCaption(msg.body, allAttachments) ? (
+                                                                    <div className="text-xs opacity-90 break-words flex-1">
+                                                                        <MessageBodyRenderer body={msg.body} type={msg.type} isMe={isMe} isDark={isDark} />
+                                                                    </div>
                                                                 ) : (
                                                                     <span />
                                                                 )}
                                                                 <div className="flex items-center gap-1 shrink-0 text-[9px] opacity-70 select-none ml-auto">
+                                                                    {starredIds.includes(msg.id) && (
+                                                                        <Star className="h-3 w-3 fill-amber-400 text-amber-400 mr-0.5" />
+                                                                    )}
                                                                     {msg.is_edited && <span className="text-[#2788E8]/70 italic">edited</span>}
                                                                     <span>
                                                                         {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -2824,9 +3154,12 @@ export default function Dashboard() {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="whitespace-pre-wrap break-words text-sm">
-                                                            {msg.body}
+                                                        <div className="text-sm">
+                                                            <MessageBodyRenderer body={msg.body} type={msg.type} isMe={isMe} isDark={isDark} />
                                                             <span className="inline-flex items-center gap-1 ml-2 text-[9px] opacity-70 select-none align-bottom">
+                                                                {starredIds.includes(msg.id) && (
+                                                                    <Star className="h-3 w-3 fill-amber-400 text-amber-400 mr-0.5" />
+                                                                )}
                                                                 {msg.is_edited && <span className="text-[#2788E8]/70 italic mr-0.5">edited</span>}
                                                                 <span>
                                                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -2840,9 +3173,25 @@ export default function Dashboard() {
                                                                     />
                                                                 )}
                                                             </span>
-                                                        </p>
+                                                        </div>
                                                     )}
                                                 </div>
+
+                                                {/* Reaction Badges Underneath Bubble */}
+                                                {messageReactions[msg.id] && Object.keys(messageReactions[msg.id]).length > 0 && (
+                                                    <div className={`flex flex-wrap gap-1 mt-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
+                                                        {Object.entries(messageReactions[msg.id]).map(([emoji, count]) => (
+                                                            <button
+                                                                key={`react-pill-${msg.id}-${emoji}`}
+                                                                onClick={() => handleReactMessage(msg.id, emoji)}
+                                                                className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border dark:border-white/10 border-neutral-200 dark:bg-white/5 bg-white shadow-sm hover:scale-105 transition-transform cursor-pointer"
+                                                            >
+                                                                <span>{emoji}</span>
+                                                                <span className="text-[10px] text-neutral-400">{count}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -3246,56 +3595,121 @@ export default function Dashboard() {
                                                     </div>
                                                 </div>
 
+                                                {/* Group Admin & Moderation Controls */}
+                                                <div className="space-y-2">
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowAddMembersModal(true)}
+                                                            className="h-9 px-3 rounded-xl bg-[#2788E8]/10 hover:bg-[#2788E8]/20 text-[#2788E8] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-[#2788E8]/30"
+                                                        >
+                                                            <UserPlus className="h-3.5 w-3.5" />
+                                                            <span>Add Members</span>
+                                                        </button>
+                                                        {activeConversation.members?.some((m: any) => m.id === currentUser?.id && m.pivot?.role === 'admin') && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowGroupSettingsModal(true)}
+                                                                className="h-9 px-3 rounded-xl dark:bg-white/5 bg-neutral-100 dark:hover:bg-white/10 hover:bg-neutral-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border dark:border-white/10 border-neutral-200"
+                                                            >
+                                                                <SlidersHorizontal className="h-3.5 w-3.5 text-[#2788E8]" />
+                                                                <span>Permissions</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleLeaveGroup}
+                                                        className="w-full h-9 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-red-500/20"
+                                                    >
+                                                        <LogOut className="h-3.5 w-3.5" />
+                                                        <span>Leave Group</span>
+                                                    </button>
+                                                </div>
+
                                                 {/* Members List */}
                                                 <div className="space-y-3.5">
-                                                    <h4 className="text-[10px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-bold px-1">
-                                                        Group Members
-                                                    </h4>
+                                                    <div className="flex items-center justify-between px-1">
+                                                        <h4 className="text-[10px] uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-bold">
+                                                            Group Members ({activeConversation.members?.length || 0})
+                                                        </h4>
+                                                    </div>
                                                     <div className="space-y-1.5">
                                                         {activeConversation.members?.map((member: any) => {
                                                             const isOnline = onlineUsers[member.id] === true;
                                                             const isAdmin = member.pivot?.role === 'admin';
                                                             const isMe = member.id === currentUser?.id;
+                                                            const amIAdmin = activeConversation.members?.some((m: any) => m.id === currentUser?.id && m.pivot?.role === 'admin');
+
                                                             return (
                                                                 <div
                                                                     key={`member-${member.id}`}
-                                                                    onClick={() => {
-                                                                        if (isMe) return;
-                                                                        fetchSidebarUserProfile(member.id);
-                                                                        setSidebarView('user');
-                                                                    }}
-                                                                    className={`flex items-center gap-3 p-2.5 rounded-xl transition-all border border-transparent ${isMe
-                                                                            ? 'opacity-80'
-                                                                            : 'cursor-pointer dark:hover:bg-white/5 hover:bg-neutral-100 hover:border-neutral-200 dark:hover:border-white/5'
-                                                                        }`}
+                                                                    className={`flex items-center justify-between p-2.5 rounded-xl transition-all border border-transparent dark:hover:bg-white/5 hover:bg-neutral-100`}
                                                                 >
-                                                                    <div className="relative">
-                                                                        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 dark:border-white/10 dark:bg-white/5 bg-neutral-100 text-neutral-600 dark:text-white font-bold text-xs overflow-hidden">
-                                                                            {member.avatar_url ? (
-                                                                                <img src={member.avatar_url} alt={member.name} className="h-full w-full object-cover" />
-                                                                            ) : (
-                                                                                member.name.charAt(0).toUpperCase()
+                                                                    <div
+                                                                        onClick={() => {
+                                                                            if (isMe) return;
+                                                                            fetchSidebarUserProfile(member.id);
+                                                                            setSidebarView('user');
+                                                                        }}
+                                                                        className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                                                                    >
+                                                                        <div className="relative shrink-0">
+                                                                            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 dark:border-white/10 dark:bg-white/5 bg-neutral-100 text-neutral-600 dark:text-white font-bold text-xs overflow-hidden">
+                                                                                {member.avatar_url ? (
+                                                                                    <img src={member.avatar_url} alt={member.name} className="h-full w-full object-cover" />
+                                                                                ) : (
+                                                                                    member.name.charAt(0).toUpperCase()
+                                                                                )}
+                                                                            </div>
+                                                                            {isOnline && (
+                                                                                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-[#0F0F0F] bg-green-500" />
                                                                             )}
                                                                         </div>
-                                                                        {isOnline && (
-                                                                            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-[#0F0F0F] bg-green-500" />
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="flex items-center gap-1.5">
-                                                                            <span className="font-semibold dark:text-white text-neutral-900 text-xs truncate">
-                                                                                {member.name}{isMe ? ' (You)' : ''}
-                                                                            </span>
-                                                                            {isAdmin && (
-                                                                                <span className="text-[9px] font-bold text-[#2788E8] border border-[#2788E8]/45 px-1.5 py-0.5 rounded bg-[#2788E8]/5 shrink-0">
-                                                                                    Admin
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <div className="flex items-center gap-1.5">
+                                                                                <span className="font-semibold dark:text-white text-neutral-900 text-xs truncate">
+                                                                                    {member.name}{isMe ? ' (You)' : ''}
                                                                                 </span>
-                                                                            )}
+                                                                                {isAdmin && (
+                                                                                    <span className="text-[9px] font-bold text-[#2788E8] border border-[#2788E8]/45 px-1.5 py-0.5 rounded bg-[#2788E8]/5 shrink-0 flex items-center gap-1">
+                                                                                        <Crown className="h-2.5 w-2.5" />
+                                                                                        Admin
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                            <span className="text-[10px] text-neutral-400 block truncate">
+                                                                                {isOnline ? 'Online' : 'Offline'}
+                                                                            </span>
                                                                         </div>
-                                                                        <span className="text-[10px] text-neutral-400 block truncate">
-                                                                            {isOnline ? 'Online' : 'Offline'}
-                                                                        </span>
                                                                     </div>
+
+                                                                    {/* Admin Action Menu for Member */}
+                                                                    {amIAdmin && !isMe && (
+                                                                        <div className="flex items-center gap-1 shrink-0 ml-2">
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleUpdateMemberRole(member.id, isAdmin ? 'member' : 'admin');
+                                                                                }}
+                                                                                className="p-1 rounded-md text-neutral-400 hover:text-[#2788E8] hover:bg-[#2788E8]/10 transition-colors cursor-pointer text-[10px]"
+                                                                                title={isAdmin ? 'Dismiss Admin' : 'Make Admin'}
+                                                                            >
+                                                                                <Crown className={`h-3.5 w-3.5 ${isAdmin ? 'text-[#2788E8] fill-[#2788E8]' : ''}`} />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleRemoveGroupMember(member.id);
+                                                                                }}
+                                                                                className="p-1 rounded-md text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                                                                                title="Remove Member"
+                                                                            >
+                                                                                <UserMinus className="h-3.5 w-3.5" />
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         })}
@@ -3391,6 +3805,19 @@ export default function Dashboard() {
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {/* Contact Actions */}
+                                                {sidebarUserProfile && (
+                                                    <div className="space-y-2 pt-2">
+                                                        <button
+                                                            onClick={() => handleRemoveFriend(sidebarUserProfile.id)}
+                                                            className="w-full h-9 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer border border-red-500/20"
+                                                        >
+                                                            <UserMinus className="h-4 w-4" />
+                                                            <span>Remove Contact</span>
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -3592,6 +4019,18 @@ export default function Dashboard() {
                                     <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
                                 )}
                             </button>
+                            <button
+                                onClick={() => {
+                                    fetchSentRequests();
+                                    setFriendsModalTab('sent');
+                                }}
+                                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 cursor-pointer transition-all flex items-center gap-1.5 ${friendsModalTab === 'sent'
+                                        ? 'border-[#2788E8] dark:text-white text-neutral-900'
+                                        : 'border-transparent text-neutral-500 hover:text-neutral-300'
+                                    }`}
+                            >
+                                Sent Requests ({sentRequests.length})
+                            </button>
                         </div>
 
                         {friendsModalTab === 'search' ? (
@@ -3667,7 +4106,7 @@ export default function Dashboard() {
                                     )}
                                 </div>
                             </div>
-                        ) : (
+                        ) : friendsModalTab === 'requests' ? (
                             <div className="max-h-72 overflow-y-auto custom-scrollbar space-y-1">
                                 {pendingRequests.length === 0 ? (
                                     <div className="text-center py-10 text-neutral-500 flex flex-col items-center">
@@ -3710,6 +4149,44 @@ export default function Dashboard() {
                                                     <X className="h-4.5 w-4.5" />
                                                 </button>
                                             </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        ) : (
+                            /* Sent Requests Tab */
+                            <div className="max-h-72 overflow-y-auto custom-scrollbar space-y-1">
+                                {sentRequests.length === 0 ? (
+                                    <div className="text-center py-10 text-neutral-500 flex flex-col items-center">
+                                        <Clock className="h-7 w-7 text-neutral-500 mb-1.5" />
+                                        <span className="text-xs">No pending sent requests.</span>
+                                    </div>
+                                ) : (
+                                    sentRequests.map((req, rIdx) => (
+                                        <div
+                                            key={`sent-req-${req.id || rIdx}`}
+                                            className="flex items-center justify-between p-3.5 rounded-xl border dark:border-white/5 border-neutral-200 dark:bg-white/[0.01] bg-neutral-50 dark:hover:bg-white/[0.03] hover:bg-neutral-100 transition-all"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2788E8]/45 bg-[#2788E8]/10 text-[#2788E8] font-bold text-xs overflow-hidden">
+                                                    {req.receiver?.avatar_url ? (
+                                                        <img src={req.receiver.avatar_url} alt={req.receiver.name} className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        req.receiver?.name?.charAt(0).toUpperCase() || '?'
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 pr-2">
+                                                    <span className="font-semibold dark:text-white text-neutral-900 text-xs block truncate">{req.receiver?.name}</span>
+                                                    <span className="text-[10px] text-neutral-500 block truncate">{req.receiver?.email}</span>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() => handleCancelFriendRequest(req.id)}
+                                                className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold border border-red-500/20 transition-colors cursor-pointer"
+                                            >
+                                                Cancel
+                                            </button>
                                         </div>
                                     ))
                                 )}
@@ -4121,10 +4598,27 @@ export default function Dashboard() {
                     onContextMenu={(e) => { e.preventDefault(); setMsgContextMenu(null); }}
                 >
                     <div
-                        style={{ left: Math.min(msgContextMenu.x, window.innerWidth - 240), top: Math.min(msgContextMenu.y, window.innerHeight - 300) }}
-                        className="fixed z-[10000] w-56 rounded-2xl bg-[#1F2C34] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7)] py-2 text-white text-xs overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                        style={{ left: Math.min(msgContextMenu.x, window.innerWidth - 250), top: Math.min(msgContextMenu.y, window.innerHeight - 360) }}
+                        className="fixed z-[10000] w-60 rounded-2xl bg-[#1F2C34] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7)] py-2 text-white text-xs overflow-hidden animate-in fade-in zoom-in-95 duration-150"
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* Quick Reaction Bar in Context Menu */}
+                        <div className="px-3 py-2 border-b border-white/10 mb-1 flex items-center justify-around">
+                            {['❤️', '👍', '😂', '😮', '😢', '🙏'].map(emoji => (
+                                <button
+                                    key={`ctx-emoji-${emoji}`}
+                                    onClick={() => {
+                                        handleReactMessage(msgContextMenu.msg.id, emoji);
+                                        setMsgContextMenu(null);
+                                    }}
+                                    className="text-lg hover:scale-135 transition-transform p-1 cursor-pointer"
+                                >
+                                    {emoji}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Reply */}
                         <button
                             onClick={() => {
                                 setReplyingToMessage(msgContextMenu.msg);
@@ -4135,6 +4629,51 @@ export default function Dashboard() {
                             <CornerUpLeft className="h-4 w-4 text-[#2788E8]" />
                             <span>Reply</span>
                         </button>
+
+                        {/* Reply Privately (Group only) */}
+                        {activeConversation?.type === 'group' && msgContextMenu.msg.sender_id !== currentUser?.id && (
+                            <button
+                                onClick={() => {
+                                    handleReplyPrivately(
+                                        msgContextMenu.msg.sender_id,
+                                        msgContextMenu.msg.sender_name,
+                                        msgContextMenu.msg
+                                    );
+                                    setMsgContextMenu(null);
+                                }}
+                                className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
+                            >
+                                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                                <span>Reply Privately</span>
+                            </button>
+                        )}
+
+                        {/* Forward */}
+                        <button
+                            onClick={() => {
+                                setForwardTargetMsg(msgContextMenu.msg);
+                                setShowForwardModal(true);
+                                setMsgContextMenu(null);
+                            }}
+                            className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
+                        >
+                            <Share2 className="h-4 w-4 text-[#2788E8]" />
+                            <span>Forward Message</span>
+                        </button>
+
+                        {/* Star / Unstar */}
+                        <button
+                            onClick={() => {
+                                toggleStarMessage(msgContextMenu.msg.id);
+                                setMsgContextMenu(null);
+                            }}
+                            className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
+                        >
+                            <Star className={`h-4 w-4 ${starredIds.includes(msgContextMenu.msg.id) ? 'fill-amber-400 text-amber-400' : 'text-amber-400'}`} />
+                            <span>{starredIds.includes(msgContextMenu.msg.id) ? 'Unstar Message' : 'Star Message'}</span>
+                        </button>
+
+                        {/* Copy */}
                         <button
                             onClick={() => {
                                 navigator.clipboard.writeText(msgContextMenu.msg.body);
@@ -4143,23 +4682,14 @@ export default function Dashboard() {
                             className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
                         >
                             <Copy className="h-4 w-4 text-neutral-300" />
-                            <span>Copy Message</span>
+                            <span>Copy Text</span>
                         </button>
-                        {msgContextMenu.msg.sender_id === currentUser?.id && (
-                            <button
-                                onClick={() => {
-                                    handleDeleteMessage(msgContextMenu.msg.id);
-                                    setMsgContextMenu(null);
-                                }}
-                                className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-red-500/10 text-left transition-colors cursor-pointer text-red-400"
-                            >
-                                <Trash2 className="h-4 w-4 text-red-400" />
-                                <span>Delete Message</span>
-                            </button>
-                        )}
+
+                        {/* Message Info */}
                         <button
                             onClick={() => {
-                                alert(`Sent: ${new Date(msgContextMenu.msg.created_at).toLocaleString()}`);
+                                setInfoTargetMsg(msgContextMenu.msg);
+                                setShowMessageInfoModal(true);
                                 setMsgContextMenu(null);
                             }}
                             className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
@@ -4167,9 +4697,156 @@ export default function Dashboard() {
                             <Info className="h-4 w-4 text-neutral-300" />
                             <span>Message Details</span>
                         </button>
+
+                        {/* Edit / Delete for Sender */}
+                        {msgContextMenu.msg.sender_id === currentUser?.id && !msgContextMenu.msg.is_deleted && (
+                            <>
+                                <div className="border-t border-white/10 my-1" />
+                                {msgContextMenu.msg.type === 'text' && (
+                                    <button
+                                        onClick={() => {
+                                            setEditingMessage(msgContextMenu.msg);
+                                            setMessageInput(msgContextMenu.msg.body);
+                                            setMsgContextMenu(null);
+                                        }}
+                                        className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer text-[#2788E8]"
+                                    >
+                                        <Edit2 className="h-4 w-4" />
+                                        <span>Edit Message</span>
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => {
+                                        handleDeleteMessage(msgContextMenu.msg.id);
+                                        setMsgContextMenu(null);
+                                    }}
+                                    className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-red-500/10 text-left transition-colors cursor-pointer text-red-400"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>Delete Message</span>
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
+
+            {/* Modal: Create Group */}
+            <CreateGroupModal
+                isOpen={showCreateGroupModal}
+                onClose={() => setShowCreateGroupModal(false)}
+                friends={friends}
+                onGroupCreated={(newConv) => {
+                    setConversations(prev => [newConv, ...prev]);
+                    setActiveConversationId(newConv.id);
+                }}
+                isDark={isDark}
+                compressAndCropImage={async (file) => (await compressImage(file, 0.7)) as Blob}
+            />
+
+            {/* Modal: Add Group Members */}
+            {activeConversation && activeConversation.type === 'group' && (
+                <AddMembersModal
+                    isOpen={showAddMembersModal}
+                    onClose={() => setShowAddMembersModal(false)}
+                    conversationId={activeConversation.id}
+                    existingMemberIds={activeConversation.members?.map(m => m.id) || []}
+                    friends={friends}
+                    onMembersAdded={(updatedConv) => {
+                        setConversations(prev => prev.map(c => c.id === updatedConv.id ? { ...c, ...updatedConv } : c));
+                    }}
+                    isDark={isDark}
+                />
+            )}
+
+            {/* Modal: Group Settings & Permissions */}
+            {activeConversation && activeConversation.type === 'group' && (
+                <GroupSettingsModal
+                    isOpen={showGroupSettingsModal}
+                    onClose={() => setShowGroupSettingsModal(false)}
+                    conversationId={activeConversation.id}
+                    initialSettings={(activeConversation as any).settings}
+                    onSettingsUpdated={(updatedConv) => {
+                        setConversations(prev => prev.map(c => c.id === updatedConv.id ? { ...c, ...updatedConv } : c));
+                    }}
+                    isDark={isDark}
+                />
+            )}
+
+            {/* Modal: Starred Messages */}
+            <StarredMessagesModal
+                isOpen={showStarredModal}
+                onClose={() => setShowStarredModal(false)}
+                starredMessages={messages
+                    .filter(m => starredIds.includes(m.id))
+                    .map(m => ({
+                        id: m.id,
+                        conversation_id: m.conversation_id,
+                        conversation_name: activeConversation?.name || (activeConversation?.type === 'direct' ? getChatPartner(activeConversation)?.name : 'Chat'),
+                        sender_id: m.sender_id,
+                        sender_name: m.sender_name || (m.sender_id === currentUser?.id ? 'You' : 'Contact'),
+                        type: m.type,
+                        body: m.body,
+                        created_at: m.created_at,
+                    }))}
+                onUnstar={(msgId) => toggleStarMessage(msgId)}
+                onJumpToMessage={(convId, msgId) => {
+                    if (activeConversationId !== convId) {
+                        setActiveConversationId(convId);
+                    }
+                    setTimeout(() => {
+                        const el = document.getElementById(`msg-${msgId}`);
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            el.classList.add('pulse-highlight');
+                            setTimeout(() => el.classList.remove('pulse-highlight'), 2000);
+                        }
+                    }, 400);
+                }}
+                currentConversationId={activeConversationId}
+                isDark={isDark}
+            />
+
+            {/* Modal: Forward Message */}
+            <ForwardMessageModal
+                isOpen={showForwardModal}
+                onClose={() => {
+                    setShowForwardModal(false);
+                    setForwardTargetMsg(null);
+                }}
+                messageToForward={forwardTargetMsg}
+                conversations={conversations}
+                friends={friends}
+                currentUserId={currentUser?.id}
+                onForwardSuccess={(targetConvId) => {
+                    if (activeConversationId !== targetConvId) {
+                        setActiveConversationId(targetConvId);
+                    }
+                }}
+                isDark={isDark}
+            />
+
+            {/* Modal: Detailed Message Info */}
+            <MessageInfoModal
+                isOpen={showMessageInfoModal}
+                onClose={() => {
+                    setShowMessageInfoModal(false);
+                    setInfoTargetMsg(null);
+                }}
+                messageId={infoTargetMsg?.id || null}
+                messageBody={infoTargetMsg?.body || ''}
+                isDark={isDark}
+            />
+
+            {/* Modal: Restore Soft-Deleted Chats */}
+            <ChatRestoreModal
+                isOpen={showRestoreModal}
+                onClose={() => setShowRestoreModal(false)}
+                onRestored={() => {
+                    fetchConversations();
+                }}
+                isDark={isDark}
+            />
         </div>
     );
 }
