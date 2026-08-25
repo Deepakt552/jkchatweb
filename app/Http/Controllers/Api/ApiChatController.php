@@ -51,7 +51,7 @@ class ApiChatController extends Controller
     {
         $request->validate([
             'conversation_id'    => 'required|integer',
-            'type'               => 'required|in:text,emoji,image,document,code,audio',
+            'type'               => 'required|in:text,emoji,image,document,code,audio,contact,location,system,event,notification',
             'body'               => 'required|string',
             'iv'                 => 'nullable|string',
             'reply_to_message_id'=> 'nullable|integer|exists:messages,id',
@@ -167,6 +167,7 @@ class ApiChatController extends Controller
         $message->save();
 
         // Broadcast updated message reaction to all conversation members
+        broadcast(new \App\Events\MessageReactionUpdated($message, $userId, $userReactions[(string)$userId] ?? null))->toOthers();
         broadcast(new \App\Events\MessageEdited($message->fresh()))->toOthers();
 
         return response()->json([

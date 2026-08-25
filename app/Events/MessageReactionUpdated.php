@@ -10,15 +10,19 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageEdited implements ShouldBroadcastNow
+class MessageReactionUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Message $message;
+    public int $userId;
+    public ?string $emoji;
 
-    public function __construct(Message $message)
+    public function __construct(Message $message, int $userId = 0, ?string $emoji = null)
     {
         $this->message = $message;
+        $this->userId = $userId;
+        $this->emoji = $emoji;
     }
 
     public function broadcastOn(): array
@@ -30,19 +34,18 @@ class MessageEdited implements ShouldBroadcastNow
 
     public function broadcastAs(): string
     {
-        return 'MessageEdited';
+        return 'MessageReactionUpdated';
     }
 
     public function broadcastWith(): array
     {
         return [
             'id' => $this->message->id,
+            'message_id' => $this->message->id,
             'conversation_id' => $this->message->conversation_id,
-            'body' => $this->message->body,
-            'iv' => $this->message->iv,
-            'is_edited' => (bool)$this->message->is_edited,
             'reactions' => $this->message->reactions,
-            'updated_at' => $this->message->updated_at->toIso8601String(),
+            'user_id' => $this->userId,
+            'emoji' => $this->emoji,
         ];
     }
 }
