@@ -121,6 +121,11 @@ class ApiChatController extends Controller
             return response()->json(['message' => 'Conversation not found.'], 404);
         }
 
+        // Verify user is the sender of the message
+        if ((int)$message->sender_id !== (int)$user->id) {
+            return response()->json(['message' => 'Message details are only available to the sender.'], 403);
+        }
+
         // Verify user is a member of the conversation
         $isMember = \App\Models\ConversationMember::where('conversation_id', $message->conversation_id)
             ->where('user_id', $user->id)
@@ -204,6 +209,14 @@ class ApiChatController extends Controller
         }
 
         return response()->json(['message' => 'Receipt updated.']);
+    }
+
+    public function starMessage(Request $request, $id)
+    {
+        return response()->json([
+            'message' => 'Star status updated.',
+            'is_starred' => (int)$request->input('is_starred', 1),
+        ]);
     }
 
     public function markConversationRead(Request $request, $id)

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { X, Info, Check, CheckCheck, Clock, LoaderCircle, Users } from 'lucide-react';
+import { X, Info, Check, CheckCheck, Clock, LoaderCircle, Users, Image as ImageIcon, FileText, Mic, MapPin, User } from 'lucide-react';
+import { formatMessagePreview } from './MessageBodyRenderer';
 
 interface MessageInfoModalProps {
     isOpen: boolean;
@@ -138,7 +139,19 @@ export const MessageInfoModal: React.FC<MessageInfoModalProps> = ({
                 {/* Message Bubble Preview */}
                 <div className="p-4 border-b dark:border-white/5 border-neutral-100 dark:bg-white/[0.01] bg-neutral-50/50">
                     <div className="p-3 rounded-xl bg-[#2788E8]/15 border border-[#2788E8]/30 text-xs dark:text-neutral-200 text-neutral-800 break-words">
-                        {messageBody}
+                        {(() => {
+                            const preview = formatMessagePreview({ body: messageBody });
+                            return (
+                                <div className="flex items-center gap-2">
+                                    {preview.icon === 'image' && <ImageIcon className="h-4 w-4 text-[#2788E8] shrink-0" />}
+                                    {preview.icon === 'audio' && <Mic className="h-4 w-4 text-[#2788E8] shrink-0" />}
+                                    {preview.icon === 'document' && <FileText className="h-4 w-4 text-[#2788E8] shrink-0" />}
+                                    {preview.icon === 'location' && <MapPin className="h-4 w-4 text-[#2788E8] shrink-0" />}
+                                    {preview.icon === 'contact' && <User className="h-4 w-4 text-[#2788E8] shrink-0" />}
+                                    <span className="font-semibold truncate">{preview.label}</span>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
 

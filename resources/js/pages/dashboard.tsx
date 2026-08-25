@@ -405,6 +405,48 @@ const parseRawAttachmentJson = (body?: string | null) => {
     return null;
 };
 
+const isSystemEventMessage = (msg: any): boolean => {
+    if (!msg || msg.is_deleted) return false;
+    const type = (msg.type || '').toString().toLowerCase();
+    if (type === 'system' || type === 'event' || type === 'notification') return true;
+    if (msg.is_system === 1 || msg.is_system === true) return true;
+
+    const body = (msg.body || '').toString().trim();
+    if (!body || body.startsWith('{') || body.startsWith('[')) return false;
+
+    const lower = body.toLowerCase();
+    return (
+        lower.includes(' added ') ||
+        lower.endsWith(' added you') ||
+        lower.includes(' removed ') ||
+        lower.endsWith(' was removed') ||
+        lower.endsWith(' left the group') ||
+        lower.endsWith(' left') ||
+        lower.includes(' created group ') ||
+        lower.includes(' created this group') ||
+        (lower.includes(' sent ') && lower.includes(' message history')) ||
+        lower.includes('changed the group') ||
+        lower.includes('updated the group') ||
+        lower.includes('group name to') ||
+        lower.includes('group description') ||
+        lower.includes('group icon') ||
+        lower.includes('messages and calls are end-to-end encrypted') ||
+        lower.includes('became an admin') ||
+        lower.includes('is now an admin') ||
+        lower.includes('dismissed as admin')
+    );
+};
+
+const formatSystemText = (msg: any, currentUserId?: number, currentUserName?: string): string => {
+    let text = (msg.body || '').toString().trim();
+    if (currentUserId && msg.sender_id === currentUserId) {
+        if (currentUserName && text.startsWith(`${currentUserName} `)) {
+            text = text.replace(`${currentUserName} `, 'You ');
+        }
+    }
+    return text;
+};
+
 export default function Dashboard() {
     const { auth } = usePage().props as any;
     const [currentUser, setCurrentUser] = useState<User>(auth?.user as User);
@@ -2968,6 +3010,16 @@ export default function Dashboard() {
                                         const allAttachments = hasAttachments ? msg.attachments! : (rawAttach ? [rawAttach] : []);
                                         const displayAttachments = allAttachments.length > 0;
 
+                                        if (isSystemEventMessage(msg)) {
+                                            return (
+                                                <div key={`sys-msg-${msg.id || index}`} className="flex justify-center my-2.5 w-full animate-chat-entry">
+                                                    <div className="px-4 py-1.5 rounded-full text-[11px] font-medium max-w-lg text-center border dark:border-white/5 border-neutral-200/80 dark:bg-white/[0.04] bg-neutral-100/90 text-neutral-400 dark:text-neutral-400 shadow-sm backdrop-blur-md">
+                                                        {formatSystemText(msg, currentUser?.id, currentUser?.name)}
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+
                                         return (
                                             <div
                                                 key={`msg-${msg.id || 'temp'}-${index}`}
@@ -4685,18 +4737,20 @@ export default function Dashboard() {
                             <span>Copy Text</span>
                         </button>
 
-                        {/* Message Info */}
-                        <button
-                            onClick={() => {
-                                setInfoTargetMsg(msgContextMenu.msg);
-                                setShowMessageInfoModal(true);
-                                setMsgContextMenu(null);
-                            }}
-                            className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
-                        >
-                            <Info className="h-4 w-4 text-neutral-300" />
-                            <span>Message Details</span>
-                        </button>
+                        {/* Message Info - Only for messages sent by the user */}
+                        {msgContextMenu.msg.sender_id === currentUser?.id && !msgContextMenu.msg.is_deleted && (
+                            <button
+                                onClick={() => {
+                                    setInfoTargetMsg(msgContextMenu.msg);
+                                    setShowMessageInfoModal(true);
+                                    setMsgContextMenu(null);
+                                }}
+                                className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors cursor-pointer"
+                            >
+                                <Info className="h-4 w-4 text-neutral-300" />
+                                <span>Message Details</span>
+                            </button>
+                        )}
 
                         {/* Edit / Delete for Sender */}
                         {msgContextMenu.msg.sender_id === currentUser?.id && !msgContextMenu.msg.is_deleted && (

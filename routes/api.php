@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/send', [ApiChatController::class, 'sendMessage']);
     Route::post('/messages/{id}/edit', [ApiChatController::class, 'editMessage']);
     Route::post('/messages/{id}/delete', [ApiChatController::class, 'deleteMessage']);
+    Route::post('/messages/{id}/star', [ApiChatController::class, 'starMessage']);
     Route::get('/messages/{id}/info', [ApiChatController::class, 'messageInfo']);
     Route::post('/messages/receipt', [ApiChatController::class, 'readReceipt']);
     Route::post('/conversations/{id}/mark-read', [ApiChatController::class, 'markConversationRead']);

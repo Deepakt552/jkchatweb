@@ -80,6 +80,7 @@ Route::middleware(['auth'])->prefix('web')->group(function () {
     Route::post('/messages/send', [\App\Http\Controllers\Api\ApiChatController::class, 'sendMessage']);
     Route::post('/messages/{id}/edit', [\App\Http\Controllers\Api\ApiChatController::class, 'editMessage']);
     Route::post('/messages/{id}/delete', [\App\Http\Controllers\Api\ApiChatController::class, 'deleteMessage']);
+    Route::post('/messages/{id}/star', [\App\Http\Controllers\Api\ApiChatController::class, 'starMessage']);
     Route::get('/messages/{id}/info', [\App\Http\Controllers\Api\ApiChatController::class, 'messageInfo']);
     Route::post('/messages/receipt', [\App\Http\Controllers\Api\ApiChatController::class, 'readReceipt']);
     Route::post('/conversations/{id}/mark-read', [\App\Http\Controllers\Api\ApiChatController::class, 'markConversationRead']);
