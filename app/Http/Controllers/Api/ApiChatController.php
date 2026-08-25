@@ -66,6 +66,8 @@ class ApiChatController extends Controller
             $request->input('reply_to_message_id')
         );
 
+        $message->loadMissing(['sender', 'replyTo.sender', 'attachments']);
+
         return response()->json($message);
     }
 
@@ -115,14 +117,22 @@ class ApiChatController extends Controller
             return response()->json(['message' => 'Message not found.'], 404);
         }
 
+        if (!$message->conversation) {
+            return response()->json(['message' => 'Conversation not found.'], 404);
+        }
+
         // Verify user is a member of the conversation
-        $isMember = $message->conversation?->conversationMembers?->contains('user_id', $user->id) ?? false;
+        $isMember = \App\Models\ConversationMember::where('conversation_id', $message->conversation_id)
+            ->where('user_id', $user->id)
+            ->exists();
         if (!$isMember) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
-        $allMembers = $message->conversation->conversationMembers->where('user_id', '!=', $message->sender_id);
-        $reads = $message->reads;
+        $allMembers = $message->conversation->conversationMembers
+            ? $message->conversation->conversationMembers->where('user_id', '!=', $message->sender_id)
+            : collect();
+        $reads = $message->reads ?? collect();
 
         $readList = [];
         $deliveredList = [];
@@ -130,38 +140,46 @@ class ApiChatController extends Controller
 
         foreach ($allMembers as $member) {
             $memberUser = $member->user;
+            if (!$memberUser) {
+                $memberUser = \App\Models\User::find($member->user_id);
+            }
             if (!$memberUser) continue;
 
-            $record = $reads->firstWhere('user_id', $member->user_id);
+            $record = $reads->first(fn($r) => (int)$r->user_id === (int)$member->user_id);
             $userInfo = [
                 'user_id' => $memberUser->id,
                 'name' => $memberUser->name,
                 'username' => $memberUser->username,
                 'avatar_url' => $memberUser->avatar_url ?? null,
-                'role' => $member->role,
+                'role' => $member->role ?? 'member',
             ];
 
             if ($record && $record->read_at) {
+                $readAt = $record->read_at instanceof \Carbon\Carbon ? $record->read_at->toIso8601String() : (string)$record->read_at;
+                $deliveredAt = $record->delivered_at ? ($record->delivered_at instanceof \Carbon\Carbon ? $record->delivered_at->toIso8601String() : (string)$record->delivered_at) : $readAt;
                 $readList[] = array_merge($userInfo, [
-                    'read_at' => $record->read_at->toIso8601String(),
-                    'delivered_at' => $record->delivered_at ? $record->delivered_at->toIso8601String() : $record->read_at->toIso8601String(),
+                    'read_at' => $readAt,
+                    'delivered_at' => $deliveredAt,
                 ]);
             } elseif ($record && $record->delivered_at) {
+                $deliveredAt = $record->delivered_at instanceof \Carbon\Carbon ? $record->delivered_at->toIso8601String() : (string)$record->delivered_at;
                 $deliveredList[] = array_merge($userInfo, [
-                    'delivered_at' => $record->delivered_at->toIso8601String(),
+                    'delivered_at' => $deliveredAt,
                 ]);
             } else {
                 $undeliveredList[] = $userInfo;
             }
         }
 
+        $createdAtStr = $message->created_at instanceof \Carbon\Carbon ? $message->created_at->toIso8601String() : (string)$message->created_at;
+
         return response()->json([
             'message_id' => $message->id,
             'conversation_id' => $message->conversation_id,
             'is_group' => $message->conversation->type === 'group',
             'sender_id' => $message->sender_id,
-            'created_at' => $message->created_at->toIso8601String(),
-            'status' => $message->status,
+            'created_at' => $createdAtStr,
+            'status' => $message->status ?? 'sent',
             'total_recipients' => $allMembers->count(),
             'read_count' => count($readList),
             'delivered_count' => count($deliveredList),
@@ -381,9 +399,39 @@ class ApiChatController extends Controller
             return response()->json(['message' => 'Only groups can be updated.'], 400);
         }
 
+        $oldName = $conv->name;
+        $oldDesc = $conv->description;
+
         $data = $request->only(['name', 'description', 'avatar_url', 'avatar_thumb_url']);
         $conv->update($data);
 
+        // Broadcast system messages for changes
+        if ($request->has('name') && $request->name && $request->name !== $oldName) {
+            \App\Models\Message::create([
+                'conversation_id' => $conversationId,
+                'sender_id' => $user->id,
+                'type' => 'text',
+                'body' => "{$user->name} changed the group name to '{$request->name}'",
+            ]);
+        }
+        if ($request->has('description') && $request->description !== $oldDesc) {
+            \App\Models\Message::create([
+                'conversation_id' => $conversationId,
+                'sender_id' => $user->id,
+                'type' => 'text',
+                'body' => "{$user->name} updated the group description",
+            ]);
+        }
+        if ($request->has('avatar_url') && $request->avatar_url) {
+            \App\Models\Message::create([
+                'conversation_id' => $conversationId,
+                'sender_id' => $user->id,
+                'type' => 'text',
+                'body' => "{$user->name} changed the group icon",
+            ]);
+        }
+
+        $conv->touch();
         return response()->json($conv->load('members'));
     }
 
@@ -432,6 +480,14 @@ class ApiChatController extends Controller
             'avatar_thumb_url' => $avatarUrl,
         ]);
 
+        \App\Models\Message::create([
+            'conversation_id' => $conversationId,
+            'sender_id' => $user->id,
+            'type' => 'text',
+            'body' => "{$user->name} changed the group icon",
+        ]);
+
+        $conv->touch();
         return response()->json($conv->load('members'));
     }
 
