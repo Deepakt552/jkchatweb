@@ -95,19 +95,19 @@ class SendMessagePushNotification implements ShouldQueue
 
     private function sendToDevice(Messaging $messaging, string $token, string $deviceId, int $recipientId, int $badgeCount = 1): void
     {
-        $notificationBody = 'New message';
+        $notificationBody = '💬 New Message';
         if ($this->type === 'image') {
-            $notificationBody = 'Photo';
+            $notificationBody = '📸 Photo';
         } elseif ($this->type === 'audio') {
-            $notificationBody = 'Voice note';
+            $notificationBody = '🎙️ Voice Note';
         } elseif ($this->type === 'video') {
-            $notificationBody = 'Video';
+            $notificationBody = '🎬 Video';
         } elseif ($this->type === 'location') {
-            $notificationBody = 'Location';
+            $notificationBody = '📍 Location';
         } elseif ($this->type === 'contact') {
-            $notificationBody = 'Contact';
+            $notificationBody = '📇 Contact';
         } elseif ($this->type === 'document') {
-            $notificationBody = 'Document';
+            $notificationBody = '📁 Document';
         } elseif ($this->iv === null && !empty($this->body)) {
             $notificationBody = $this->body;
         }
