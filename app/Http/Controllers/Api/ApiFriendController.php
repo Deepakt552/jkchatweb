@@ -179,21 +179,22 @@ class ApiFriendController extends Controller
     public function search(Request $request)
     {
         $request->validate([
-            'query' => 'required|string|min:1',
+            'query' => 'nullable|string',
         ]);
 
-        $query = $request->input('query');
+        $query = trim((string)$request->input('query', ''));
         $userId = $request->user()->id;
 
         // Search users that are not the current user
-        $users = User::where('id', '!=', $userId)
-            ->where(function ($q) use ($query) {
+        $usersQuery = User::where('id', '!=', $userId);
+        if ($query !== '') {
+            $usersQuery->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
                   ->orWhere('username', 'like', "%{$query}%")
                   ->orWhere('email', 'like', "%{$query}%");
-            })
-            ->limit(20)
-            ->get();
+            });
+        }
+        $users = $usersQuery->orderBy('name', 'asc')->limit(100)->get();
 
         $friendIdsDirect = \App\Models\Friend::where('user_id', $userId)->pluck('friend_id')->toArray();
         $friendIdsInverse = \App\Models\Friend::where('friend_id', $userId)->pluck('user_id')->toArray();
