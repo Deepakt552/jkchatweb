@@ -97,15 +97,17 @@ class SendMessagePushNotification implements ShouldQueue
     {
         $notificationBody = 'New message';
         if ($this->type === 'image') {
-            $notificationBody = '📷 Photo';
+            $notificationBody = 'Photo';
         } elseif ($this->type === 'audio') {
-            $notificationBody = '🎤 Voice note';
+            $notificationBody = 'Voice note';
+        } elseif ($this->type === 'video') {
+            $notificationBody = 'Video';
         } elseif ($this->type === 'location') {
-            $notificationBody = '📍 Location';
+            $notificationBody = 'Location';
         } elseif ($this->type === 'contact') {
-            $notificationBody = '👤 Contact';
+            $notificationBody = 'Contact';
         } elseif ($this->type === 'document') {
-            $notificationBody = '📄 Document';
+            $notificationBody = 'Document';
         } elseif ($this->iv === null && !empty($this->body)) {
             $notificationBody = $this->body;
         }
