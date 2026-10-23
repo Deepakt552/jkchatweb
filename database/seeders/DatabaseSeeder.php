@@ -38,14 +38,32 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Seed Test Employee 2
-        User::create([
-            'name' => 'Bob Jones',
-            'email' => 'bob@securechat.com',
-            'username' => 'bob',
-            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
-            'is_admin' => false,
-            'is_enabled' => true,
-            'online_status' => 'offline',
-        ]);
+        User::updateOrCreate(
+            ['username' => 'bob'],
+            [
+                'name' => 'Bob Jones',
+                'email' => 'bob@securechat.com',
+                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'is_admin' => false,
+                'is_enabled' => true,
+                'online_status' => 'offline',
+            ]
+        );
+
+        // Seed Reviewer Account for Apple App Store & Google Play Store
+        User::updateOrCreate(
+            ['username' => 'dia'],
+            [
+                'name' => 'Dia',
+                'email' => 'dia@diachat.app',
+                'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
+                'is_admin' => false,
+                'is_enabled' => true,
+                'is_suspended' => false,
+                'otp_code' => '123456',
+                'otp_expires_at' => now()->addYears(5),
+                'online_status' => 'online',
+            ]
+        );
     }
 }

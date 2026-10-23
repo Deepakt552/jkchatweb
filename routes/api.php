@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/devices', [ApiAuthController::class, 'getActiveDevices']);
     Route::post('/devices/logout', [ApiAuthController::class, 'logoutRemoteDevice']);
     Route::post('/devices/logout-all', [ApiAuthController::class, 'logoutAllDevices']);
+    Route::post('/account/delete', [ApiAuthController::class, 'deleteAccount']);
 
     // FCM push notification device token registration
     Route::post('/device-token', [DeviceTokenController::class, 'register']);

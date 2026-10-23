@@ -13,6 +13,13 @@ Route::get('/dashboard', function () {
     return redirect('/');
 });
 
+// Public Legal & App Store Compliance Pages (No Auth Required)
+use App\Http\Controllers\LegalController;
+Route::get('/privacy-policy', [LegalController::class, 'privacyPolicy'])->name('privacy.policy');
+Route::get('/privacy', [LegalController::class, 'privacyPolicy'])->name('privacy');
+Route::get('/delete-account', [LegalController::class, 'deleteAccount'])->name('account.delete');
+Route::post('/delete-account', [LegalController::class, 'submitDeleteRequest'])->name('account.delete.submit');
+
 // Admin Dashboard Routes
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserManagementController;

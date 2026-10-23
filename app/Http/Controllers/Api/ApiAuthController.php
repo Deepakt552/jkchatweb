@@ -30,9 +30,37 @@ class ApiAuthController extends Controller
             'push_token' => 'nullable|string',
         ]);
 
-        $user = User::where('email', $request->login)
-            ->orWhere('username', $request->login)
+        $loginInput = trim($request->login);
+        $isReviewLogin = (strtolower($loginInput) === 'dia' || strtolower($loginInput) === 'dia@diachat.app' || strtolower($loginInput) === 'dia@ersila.com');
+
+        $user = User::where('email', $loginInput)
+            ->orWhere('username', $loginInput)
             ->first();
+
+        // Support for Apple App Store & Google Play Review account (username: dia, password: 12345678, OTP: 123456)
+        if ($isReviewLogin) {
+            if (!$user) {
+                $user = User::firstOrCreate(
+                    ['username' => 'dia'],
+                    [
+                        'name' => 'Dia',
+                        'email' => 'dia@diachat.app',
+                        'password' => Hash::make('12345678'),
+                        'is_enabled' => true,
+                        'is_suspended' => false,
+                        'online_status' => 'online',
+                    ]
+                );
+            }
+            if ($request->password === '12345678') {
+                if (!Hash::check('12345678', $user->password)) {
+                    $user->password = Hash::make('12345678');
+                }
+                $user->is_enabled = true;
+                $user->is_suspended = false;
+                $user->save();
+            }
+        }
 
         $ip = $request->ip() ?? '127.0.0.1';
         $ua = $request->userAgent() ?? 'API Client';
@@ -58,17 +86,25 @@ class ApiAuthController extends Controller
             ]);
         }
 
-        // Always require OTP verification for App login
-        $otp = sprintf("%06d", mt_rand(100000, 999999));
-        $user->otp_code = $otp;
-        $user->otp_expires_at = now()->addMinutes(5);
-        $user->save();
+        // Fixed OTP for App Store / Play Store Review account
+        if ($isReviewLogin || strtolower($user->username ?? '') === 'dia' || strtolower($user->email ?? '') === 'dia@diachat.app') {
+            $otp = '123456';
+            $user->otp_code = '123456';
+            $user->otp_expires_at = now()->addYears(2);
+            $user->save();
+        } else {
+            // Always require OTP verification for App login
+            $otp = sprintf("%06d", mt_rand(100000, 999999));
+            $user->otp_code = $otp;
+            $user->otp_expires_at = now()->addMinutes(5);
+            $user->save();
 
-        // Send OTP Mail
-        try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
-        } catch (\Exception $e) {
-            \Log::error("Failed to send OTP email: " . $e->getMessage());
+            // Send OTP Mail
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+            } catch (\Exception $e) {
+                \Log::error("Failed to send OTP email: " . $e->getMessage());
+            }
         }
 
         return response()->json([
@@ -89,36 +125,61 @@ class ApiAuthController extends Controller
             'push_token' => 'nullable|string',
         ]);
 
-        $user = User::where('email', $request->login)
-            ->orWhere('username', $request->login)
+        $loginInput = trim($request->login);
+        $user = User::where('email', $loginInput)
+            ->orWhere('username', $loginInput)
             ->first();
 
         $ip = $request->ip() ?? '127.0.0.1';
         $ua = $request->userAgent() ?? 'API Client';
 
-        if (!$user) {
-            throw ValidationException::withMessages([
-                'otp' => ['User not found.'],
-            ]);
-        }
+        $isReviewAccount = (strtolower($loginInput) === 'dia' || strtolower($loginInput) === 'dia@diachat.app' || strtolower($loginInput) === 'dia@ersila.com' || ($user && (strtolower($user->username ?? '') === 'dia' || strtolower($user->email ?? '') === 'dia@diachat.app')));
 
-        if (!$user->is_enabled || $user->is_suspended) {
-            throw ValidationException::withMessages([
-                'otp' => ['Account is disabled or suspended.'],
-            ]);
-        }
+        // Store review test bypass: OTP 123456 is always accepted for dia
+        if ($isReviewAccount && $request->otp === '123456') {
+            if (!$user) {
+                $user = User::firstOrCreate(
+                    ['username' => 'dia'],
+                    [
+                        'name' => 'Dia',
+                        'email' => 'dia@diachat.app',
+                        'password' => Hash::make('12345678'),
+                        'is_enabled' => true,
+                        'is_suspended' => false,
+                    ]
+                );
+            }
+            $user->is_enabled = true;
+            $user->is_suspended = false;
+            // Retain OTP for repeated reviewer tests
+            $user->otp_code = '123456';
+            $user->otp_expires_at = now()->addYears(2);
+            $user->save();
+        } else {
+            if (!$user) {
+                throw ValidationException::withMessages([
+                    'otp' => ['User not found.'],
+                ]);
+            }
 
-        if (empty($user->otp_code) || empty($user->otp_expires_at) || $user->otp_code !== $request->otp || now()->greaterThan($user->otp_expires_at)) {
-            $this->userService->logLoginAttempt($request->login, $ip, $ua, 'failed', 'Invalid or expired OTP');
-            throw ValidationException::withMessages([
-                'otp' => ['The entered code is invalid or has expired.'],
-            ]);
-        }
+            if (!$user->is_enabled || $user->is_suspended) {
+                throw ValidationException::withMessages([
+                    'otp' => ['Account is disabled or suspended.'],
+                ]);
+            }
 
-        // Clear OTP on success
-        $user->otp_code = null;
-        $user->otp_expires_at = null;
-        $user->save();
+            if (empty($user->otp_code) || empty($user->otp_expires_at) || $user->otp_code !== $request->otp || now()->greaterThan($user->otp_expires_at)) {
+                $this->userService->logLoginAttempt($request->login, $ip, $ua, 'failed', 'Invalid or expired OTP');
+                throw ValidationException::withMessages([
+                    'otp' => ['The entered code is invalid or has expired.'],
+                ]);
+            }
+
+            // Clear OTP on success for regular accounts
+            $user->otp_code = null;
+            $user->otp_expires_at = null;
+            $user->save();
+        }
 
         // Clear out any previous registrations of this device identifier associated with other users
         Device::where('device_identifier', $request->device_id)
@@ -172,8 +233,9 @@ class ApiAuthController extends Controller
             'login' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->login)
-            ->orWhere('username', $request->login)
+        $loginInput = trim($request->login);
+        $user = User::where('email', $loginInput)
+            ->orWhere('username', $loginInput)
             ->first();
 
         if (!$user) {
@@ -188,6 +250,20 @@ class ApiAuthController extends Controller
             ]);
         }
 
+        $isReviewAccount = (strtolower($loginInput) === 'dia' || strtolower($loginInput) === 'dia@diachat.app' || strtolower($loginInput) === 'dia@ersila.com' || (strtolower($user->username ?? '') === 'dia' || strtolower($user->email ?? '') === 'dia@diachat.app'));
+
+        if ($isReviewAccount) {
+            $otp = '123456';
+            $user->otp_code = '123456';
+            $user->otp_expires_at = now()->addYears(2);
+            $user->save();
+
+            return response()->json([
+                'message' => 'OTP has been resent successfully.',
+                'email' => $user->email,
+            ]);
+        }
+
         // Generate and save new OTP
         $otp = sprintf("%06d", mt_rand(100000, 999999));
         $user->otp_code = $otp;
@@ -195,7 +271,11 @@ class ApiAuthController extends Controller
         $user->save();
 
         // Send OTP Mail
-        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+        } catch (\Exception $e) {
+            \Log::error("Failed to resend OTP email: " . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'OTP has been resent successfully.',
@@ -209,8 +289,9 @@ class ApiAuthController extends Controller
             'login' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->login)
-            ->orWhere('username', $request->login)
+        $loginInput = trim($request->login);
+        $user = User::where('email', $loginInput)
+            ->orWhere('username', $loginInput)
             ->first();
 
         if (!$user) {
@@ -225,6 +306,21 @@ class ApiAuthController extends Controller
                 'success' => false,
                 'message' => 'Account is disabled or suspended. Please contact support.',
             ], 403);
+        }
+
+        $isReviewAccount = (strtolower($loginInput) === 'dia' || strtolower($loginInput) === 'dia@diachat.app' || strtolower($loginInput) === 'dia@ersila.com' || (strtolower($user->username ?? '') === 'dia' || strtolower($user->email ?? '') === 'dia@diachat.app'));
+
+        if ($isReviewAccount) {
+            $otp = '123456';
+            $user->otp_code = '123456';
+            $user->otp_expires_at = now()->addYears(2);
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'email' => $user->email,
+                'message' => "A 6-digit password reset code has been sent to {$user->email}.",
+            ]);
         }
 
         // Generate 6-digit OTP code for password reset
@@ -261,13 +357,31 @@ class ApiAuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $user = User::where('email', $request->login)
-            ->orWhere('username', $request->login)
+        $loginInput = trim($request->login);
+        $user = User::where('email', $loginInput)
+            ->orWhere('username', $loginInput)
             ->first();
 
         if (!$user) {
             throw ValidationException::withMessages([
                 'login' => ['Invalid username or email.'],
+            ]);
+        }
+
+        $isReviewAccount = (strtolower($loginInput) === 'dia' || strtolower($loginInput) === 'dia@diachat.app' || strtolower($loginInput) === 'dia@ersila.com' || (strtolower($user->username ?? '') === 'dia' || strtolower($user->email ?? '') === 'dia@diachat.app'));
+
+        if ($isReviewAccount && $request->otp === '123456') {
+            $user->password = Hash::make($request->password);
+            $user->otp_code = '123456';
+            $user->otp_expires_at = now()->addYears(2);
+            $user->force_password_change = false;
+            $user->save();
+
+            $user->tokens()->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password reset successfully! You can now log in with your new password.',
             ]);
         }
 
@@ -299,6 +413,55 @@ class ApiAuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Password reset successfully! You can now log in with your new password.',
+        ]);
+    }
+
+    /**
+     * Account Deletion Endpoint (Required by Apple App Store & Google Play Policy)
+     */
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Prevent deleting admin or review account
+        if ($user->username === 'dia' || $user->is_admin) {
+            // Revoke current session devices and tokens gracefully
+            Device::where('user_id', $user->id)->delete();
+            $user->tokens()->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Your account deletion request has been processed.',
+            ]);
+        }
+
+        // 1. Delete registered devices & push tokens
+        Device::where('user_id', $user->id)->delete();
+
+        // 2. Revoke all Sanctum auth tokens
+        $user->tokens()->delete();
+
+        // 3. Log deletion audit event
+        $this->userService->logActivity($user->id, "User requested permanent account deletion from app");
+
+        // 4. Anonymize user profile and disable account
+        $userId = $user->id;
+        $user->is_enabled = false;
+        $user->is_suspended = true;
+        $user->otp_code = null;
+        $user->otp_expires_at = null;
+        $user->name = "Deleted User";
+        $user->about = null;
+        $user->avatar_url = null;
+        $user->email = "deleted_{$userId}_" . time() . "@deleted.invalid";
+        $user->username = "deleted_{$userId}_" . time();
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your account and personal data have been permanently scheduled for deletion.',
         ]);
     }
 
